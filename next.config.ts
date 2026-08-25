@@ -29,6 +29,28 @@ const nextConfig: NextConfig = {
   },
   images: {
     formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn-api.pandascore.co",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "img-cdn.hltv.org",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.pcgamesn.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "www.dexerto.com",
+        pathname: "/**",
+      },
+    ],
   },
 };
 

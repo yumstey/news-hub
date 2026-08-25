@@ -2,15 +2,20 @@
 
 ## 1. Scope
 
-A media platform with three content modules:
+A single-discipline platform for Counter-Strike 2. Every route, entity and widget on the site
+is about CS2, so the discipline is never a parameter, a URL segment or a model field — it is the
+whole application.
 
-| Module | Domain |
+| Section | Domain |
 | --- | --- |
-| News | General editorial news |
-| Sport | Traditional sport — football, basketball, … |
-| Esports | Esports — CS2 first, Dota and Valorant planned |
+| Матчи / Результаты | Fixtures and results |
+| Рейтинг | Valve global standings |
+| Команды / Игроки | Competitors |
+| Ивенты | Tournaments, standings, participants |
+| Новости | Editorial articles |
 
-This document defines the structure. It does not define UI, data or business logic — those arrive in later stages.
+Data comes from two external sources, both described in [api.md](./api.md): the PandaScore REST
+API for competition data, and Valve's published regional standings for the world ranking.
 
 ## 2. Stack and the role of each package
 

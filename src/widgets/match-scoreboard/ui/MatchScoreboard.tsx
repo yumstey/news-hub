@@ -1,11 +1,9 @@
-import Image from "next/image"
 import Link from "next/link"
 
 import { MATCH_FORMAT_LABEL, MatchStatusBadge } from "@/entities/match"
 import type { Match, MatchSide } from "@/entities/match"
-import { teamHref } from "@/entities/team"
+import { teamHref, TeamLogo } from "@/entities/team"
 import { tournamentHref } from "@/entities/tournament"
-import { SITE } from "@/shared/config"
 import { formatDateTime } from "@/shared/lib/date"
 import { cn } from "@/shared/lib/style"
 import { CountryTag } from "@/shared/ui/country-tag"
@@ -14,11 +12,9 @@ import { Heading, Text } from "@/shared/ui/typography"
 
 function Side({
   side,
-  disciplineSlug,
   align,
 }: {
   side: MatchSide
-  disciplineSlug: string
   align: "start" | "end"
 }) {
   return (
@@ -28,16 +24,16 @@ function Side({
         align === "start" ? "sm:items-start sm:text-left" : "sm:items-end sm:text-right",
       )}
     >
-      <Image
-        src={side.team.logo.url}
-        alt={side.team.logo.alt}
-        width={72}
-        height={72}
-        className="size-14 rounded-control object-contain sm:size-18"
+      <TeamLogo
+        logo={side.team.logo}
+        darkLogo={side.team.darkLogo}
+        size={72}
+        priority
+        className="size-14 rounded-control sm:size-18"
       />
       <div className="flex min-w-0 flex-col gap-1">
         <Link
-          href={teamHref(disciplineSlug, side.team.slug)}
+          href={teamHref(side.team.slug)}
           className={cn(
             "truncate text-subheading transition-colors duration-150 hover:text-primary",
             side.isWinner ? "font-bold text-foreground" : "text-muted-foreground",
@@ -84,7 +80,7 @@ export function MatchScoreboard({ match, className }: MatchScoreboardProps) {
           </Text>
         </div>
         <Link
-          href={tournamentHref(match.discipline.slug, match.tournament.slug)}
+          href={tournamentHref(match.tournament.slug)}
           className="text-caption font-medium text-primary transition-colors duration-150 hover:text-primary-hover"
         >
           {match.tournament.name}
@@ -92,7 +88,7 @@ export function MatchScoreboard({ match, className }: MatchScoreboardProps) {
       </div>
 
       <div className="flex flex-col items-center gap-6 sm:flex-row">
-        <Side side={first} disciplineSlug={match.discipline.slug} align="start" />
+        <Side side={first} align="start" />
 
         <div className="flex shrink-0 flex-col items-center gap-1">
           {showScore ? (
@@ -102,19 +98,41 @@ export function MatchScoreboard({ match, className }: MatchScoreboardProps) {
                 live ? "text-live" : "text-foreground",
               )}
             >
-              <span>{first.score}</span>
+              <span
+                className={cn(
+                  "transition-colors duration-200",
+                  first.score > second.score
+                    ? "text-success"
+                    : first.score < second.score
+                      ? "text-danger"
+                      : undefined,
+                )}
+              >
+                {first.score}
+              </span>
               <span className="text-subtle-foreground">:</span>
-              <span>{second.score}</span>
+              <span
+                className={cn(
+                  "transition-colors duration-200",
+                  second.score > first.score
+                    ? "text-success"
+                    : second.score < first.score
+                      ? "text-danger"
+                      : undefined,
+                )}
+              >
+                {second.score}
+              </span>
             </span>
           ) : (
             <span className="text-subheading font-semibold text-muted-foreground">vs</span>
           )}
           <Text size="caption" tone="subtle">
-            {formatDateTime(match.startsAt, SITE.locale)}
+            {formatDateTime(match.startsAt)}
           </Text>
         </div>
 
-        <Side side={second} disciplineSlug={match.discipline.slug} align="end" />
+        <Side side={second} align="end" />
       </div>
 
       {match.maps.length > 0 ? (

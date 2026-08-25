@@ -1,34 +1,24 @@
 import { cacheLife, cacheTag } from "next/cache"
 
-import { apiError, fail, ok } from "@/shared/api"
+import { fail, ok, pandaOne } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
 import { playerTag } from "@/shared/config"
 
 import type { Player } from "../model/player"
-import { toPlayer } from "./playerMapper"
-import { parsePlayerSource } from "./parsePlayerSource"
+import { toPlayer } from "./pandaPlayerMapper"
+import { pandaPlayerSchema } from "./pandaPlayerSchema"
 
-export async function getPlayerBySlug(
-  disciplineSlug: string,
-  slug: string,
-): Promise<ApiResult<Player>> {
+export async function getPlayerBySlug(slug: string): Promise<ApiResult<Player>> {
   "use cache"
   cacheLife("reference")
   cacheTag(playerTag(slug))
 
-  const source = parsePlayerSource()
-
-  if (source === null) {
-    return fail(apiError("contract", "Профиль игрока не соответствует контракту"))
-  }
-
-  const found = source.find(
-    (wire) => wire.discipline.slug === disciplineSlug && wire.slug === slug,
+  const result = await pandaOne(
+    `/players/${encodeURIComponent(slug)}`,
+    pandaPlayerSchema,
   )
 
-  if (!found) {
-    return fail(apiError("not-found", `Игрок «${slug}» не найден`, 404))
-  }
+  if (!result.ok) return fail(result.error)
 
-  return ok(toPlayer(found))
+  return ok(toPlayer(result.data))
 }

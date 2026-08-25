@@ -12,11 +12,9 @@ function ratingTone(rating: number): string {
 }
 
 function StatTable({
-  disciplineSlug,
   teamName,
   rows,
 }: {
-  disciplineSlug: string
   teamName: string
   rows: readonly MatchPlayerStat[]
 }) {
@@ -57,7 +55,6 @@ function StatTable({
               <tr key={row.player.id} className="border-b border-border last:border-0">
                 <td className="py-2.5 pr-3">
                   <PlayerIdentity
-                    disciplineSlug={disciplineSlug}
                     slug={row.player.slug}
                     nickname={row.player.nickname}
                     photo={row.player.photo}
@@ -109,12 +106,10 @@ export function MatchStatistics({ match, className }: MatchStatisticsProps) {
     <section className={cn("flex flex-col gap-8", className)}>
       <SectionHeading title="Статистика" />
       <StatTable
-        disciplineSlug={match.discipline.slug}
         teamName={first.team.name}
         rows={firstStats}
       />
       <StatTable
-        disciplineSlug={match.discipline.slug}
         teamName={second.team.name}
         rows={secondStats}
       />
@@ -123,11 +118,9 @@ export function MatchStatistics({ match, className }: MatchStatisticsProps) {
 }
 
 function LineupColumn({
-  disciplineSlug,
   teamName,
   players,
 }: {
-  disciplineSlug: string
   teamName: string
   players: readonly PlayerRef[]
 }) {
@@ -140,15 +133,16 @@ function LineupColumn({
         {players.map((player) => (
           <li key={player.id} className="flex items-center justify-between gap-3">
             <PlayerIdentity
-              disciplineSlug={disciplineSlug}
               slug={player.slug}
               nickname={player.nickname}
               photo={player.photo}
               country={player.country}
             />
-            <Text as="span" size="overline" tone="subtle">
-              {PLAYER_ROLE_LABEL[player.role]}
-            </Text>
+            {player.role === null ? null : (
+              <Text as="span" size="overline" tone="subtle">
+                {PLAYER_ROLE_LABEL[player.role]}
+              </Text>
+            )}
           </li>
         ))}
       </ul>
@@ -172,12 +166,10 @@ export function MatchLineups({ match, className }: MatchLineupsProps) {
       <SectionHeading title="Составы" />
       <div className="grid gap-4 md:grid-cols-2">
         <LineupColumn
-          disciplineSlug={match.discipline.slug}
           teamName={first.team.name}
           players={firstLineup}
         />
         <LineupColumn
-          disciplineSlug={match.discipline.slug}
           teamName={second.team.name}
           players={secondLineup}
         />

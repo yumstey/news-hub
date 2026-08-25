@@ -1,7 +1,5 @@
 import { z } from "zod"
 
-import { disciplineRefSchema } from "@/entities/discipline/@x/match"
-import type { DisciplineRef } from "@/entities/discipline/@x/match"
 import { playerRefSchema } from "@/entities/player/@x/match"
 import type { PlayerRef } from "@/entities/player/@x/match"
 import { teamRefSchema } from "@/entities/team/@x/match"
@@ -105,7 +103,6 @@ export type BracketSlot = {
 
 export const matchWireSchema = z.object({
   id: matchIdSchema,
-  discipline: disciplineRefSchema,
   tournament: tournamentRefSchema,
   stage: z.string().min(1),
   bracket: bracketSlotWireSchema.nullable().default(null),
@@ -124,6 +121,13 @@ export const matchWireSchema = z.object({
 
 export type MatchWire = z.infer<typeof matchWireSchema>
 
+export type MatchGame = {
+  position: number
+  winnerTeamId: string | null
+  lengthSeconds: number | null
+  finished: boolean
+}
+
 export type MatchScore = {
   side1: number
   side2: number
@@ -131,7 +135,6 @@ export type MatchScore = {
 
 export type Match = {
   id: MatchId
-  discipline: DisciplineRef
   tournament: TournamentRef
   stage: string
   bracket: BracketSlot | null
@@ -141,6 +144,7 @@ export type Match = {
   teams: [MatchSide, MatchSide]
   score: MatchScore | null
   maps: MatchMap[]
+  games: MatchGame[]
   streams: StreamLink[]
   lineups: [PlayerRef[], PlayerRef[]]
   statistics: [MatchPlayerStat[], MatchPlayerStat[]] | null

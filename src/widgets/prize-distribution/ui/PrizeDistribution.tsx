@@ -16,7 +16,6 @@ const accentByPosition: Record<number, string> = {
 }
 
 export type PrizeDistributionProps = {
-  disciplineSlug: string
   standings: readonly StandingRow[]
   currency: string
   title?: string
@@ -24,13 +23,12 @@ export type PrizeDistributionProps = {
 }
 
 export function PrizeDistribution({
-  disciplineSlug,
   standings,
   currency,
   title = "Распределение призовых",
   className,
 }: PrizeDistributionProps) {
-  const rows = standings.filter((row) => row.prize > 0)
+  const rows = standings.filter((row) => row.prize !== null && row.prize > 0)
 
   if (rows.length === 0) return null
 
@@ -47,7 +45,7 @@ export function PrizeDistribution({
             )}
           >
             <Link
-              href={teamHref(disciplineSlug, row.team.slug)}
+              href={teamHref(row.team.slug)}
               className={cn(
                 "relative flex h-full flex-col items-center gap-2 overflow-hidden rounded-surface border px-4 py-5 text-center transition-colors duration-150 hover:border-primary",
                 accentByPosition[row.position] ?? "border-border bg-surface",

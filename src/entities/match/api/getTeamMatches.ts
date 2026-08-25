@@ -1,15 +1,15 @@
 import { cacheLife, cacheTag } from "next/cache"
 
-import { apiError, fail, ok } from "@/shared/api"
+import { fail, ok, pandaList } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
 import { teamTag } from "@/shared/config"
 
 import type { Match } from "../model/match"
-import { toMatch } from "./matchMapper"
-import { byStartAsc, byStartDesc, hasTeam, parseMatchSource } from "./parseMatchSource"
+import { pageSize } from "./pandaEndpoints"
+import { toMatchList } from "./pandaMatchMapper"
+import { pandaMatchSchema } from "./pandaMatchSchema"
 
 export async function getTeamMatches(
-  disciplineSlug: string,
   teamSlug: string,
   kind: "upcoming" | "results",
   limit?: number,
@@ -18,21 +18,19 @@ export async function getTeamMatches(
   cacheLife("schedule")
   cacheTag(teamTag(teamSlug))
 
-  const source = parseMatchSource()
+  const result = await pandaList(
+    `/teams/${encodeURIComponent(teamSlug)}/matches`,
+    pandaMatchSchema,
+    {
+      "page[size]": pageSize(limit),
+      "filter[status]": kind === "results" ? "finished" : "not_started,running",
+      sort: kind === "results" ? "-begin_at" : "begin_at",
+    },
+  )
 
-  if (source === null) {
-    return fail(apiError("contract", "Матчи команды не соответствуют контракту"))
-  }
+  if (!result.ok) return fail(result.error)
 
-  const matches = source
-    .filter((wire) => wire.discipline.slug === disciplineSlug && hasTeam(wire, teamSlug))
-    .filter((wire) =>
-      kind === "upcoming"
-        ? wire.status === "scheduled" || wire.status === "live"
-        : wire.status === "finished",
-    )
-    .sort(kind === "upcoming" ? byStartAsc : byStartDesc)
-    .map(toMatch)
+  const matches = toMatchList(result.data)
 
   return ok(limit === undefined ? matches : matches.slice(0, limit))
 }

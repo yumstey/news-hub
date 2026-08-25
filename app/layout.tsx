@@ -47,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang={SITE.locale}
+      data-theme="dark"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
       <body className="flex min-h-dvh flex-col bg-background text-foreground">

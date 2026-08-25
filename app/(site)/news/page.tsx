@@ -1,128 +1,91 @@
 import { Suspense } from "react"
 
-import { articleHref, getArticleFeed, parseFeedSearchParams } from "@/entities/article"
-import { FeedFilter } from "@/features/feed-filter"
+import { getNewsFeed, NewsCard } from "@/entities/news-item"
 import { ROUTES } from "@/shared/config"
-import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "@/shared/lib/seo"
-import { absoluteUrl } from "@/shared/lib/url"
+import { pageCount } from "@/shared/model"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
-import type { BreadcrumbItem } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
+import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
+import { Pagination } from "@/shared/ui/pagination"
 import { Heading, Text } from "@/shared/ui/typography"
-import { ArticleFeed, ArticleFeedSkeleton } from "@/widgets/article-feed"
-import { CategoryNav, CategoryNavSkeleton } from "@/widgets/category-nav"
-import { FeaturedArticle, FeaturedArticleSkeleton } from "@/widgets/featured-article"
-import { PopularArticles, PopularArticlesSkeleton } from "@/widgets/popular-articles"
-import { TrendingTopics, TrendingTopicsSkeleton } from "@/widgets/trending-topics"
+import { NewsFeedSkeleton } from "@/widgets/news-feed"
 
+import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
+import { resolvePage } from "../_lib/page-param"
 import { NEWS_DESCRIPTION, NEWS_TITLE } from "./_lib/metadata"
 
 export { generateMetadata } from "./_lib/metadata"
 
-const BREADCRUMBS: BreadcrumbItem[] = [
-  { label: "Главная", href: ROUTES.home },
-  { label: NEWS_TITLE, href: ROUTES.news },
-]
+const CRUMBS = trail({ label: "Новости" })
+const PER_PAGE = 9
 
 export default function Page(props: PageProps<"/news">) {
   return (
     <Container>
-      <Section spacing="lg">
-        <JsonLd
-          data={buildBreadcrumbJsonLd(
-            BREADCRUMBS.map((item) => ({
-              name: item.label,
-              url: absoluteUrl(item.href ?? ROUTES.home),
-            })),
-          )}
-        />
-
+      <Section spacing="md">
         <Stack gap="lg">
-          <Breadcrumbs items={BREADCRUMBS} />
+          <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
+          <Breadcrumbs items={CRUMBS} />
 
           <Stack gap="sm">
-            <Heading level={1}>{NEWS_TITLE}</Heading>
-            <Text size="lead" tone="muted" className="max-w-content">
-              {NEWS_DESCRIPTION}
+            <Heading level={1} size="title">
+              {NEWS_TITLE}
+            </Heading>
+            <Text size="caption" tone="muted" className="max-w-content">
+              {NEWS_DESCRIPTION} Материалы публикуются HLTV — заголовок ведёт на источник.
             </Text>
           </Stack>
 
-          <Suspense fallback={<CategoryNavSkeleton />}>
-            <CategoryNav />
+          <Suspense fallback={<NewsFeedSkeleton count={PER_PAGE} />}>
+            <NewsList searchParams={props.searchParams} />
           </Suspense>
-
-          <Suspense fallback={<FeaturedArticleSkeleton />}>
-            <FeaturedArticle />
-          </Suspense>
-
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
-            <Suspense fallback={<ArticleFeedSkeleton />}>
-              <NewsFeedSection searchParams={props.searchParams} />
-            </Suspense>
-
-            <aside className="flex flex-col gap-6">
-              <Suspense fallback={<TrendingTopicsSkeleton />}>
-                <TrendingSection searchParams={props.searchParams} />
-              </Suspense>
-              <Suspense fallback={<PopularArticlesSkeleton />}>
-                <PopularArticles />
-              </Suspense>
-            </aside>
-          </div>
         </Stack>
       </Section>
     </Container>
   )
 }
 
-async function NewsFeedSection({ searchParams }: Pick<PageProps<"/news">, "searchParams">) {
-  const { page, tag, sort } = parseFeedSearchParams(await searchParams)
+async function NewsList({ searchParams }: Pick<PageProps<"/news">, "searchParams">) {
+  const page = await resolvePage(searchParams)
+  const result = await getNewsFeed({ page, perPage: PER_PAGE })
+
+  if (!result.ok) {
+    return (
+      <EmptyState tone="danger" title="Новости недоступны" description={result.error.message} />
+    )
+  }
+
+  if (result.data.items.length === 0) return <EmptyState title="Новостей пока нет" />
+
+  const itemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: NEWS_TITLE,
+    numberOfItems: result.data.items.length,
+    itemListElement: result.data.items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: item.url,
+      name: item.title,
+    })),
+  }
 
   return (
-    <div className="flex flex-col gap-6">
-      <FeedFilter basePath={ROUTES.news} sort={sort} tag={tag} />
-      <FeedJsonLd page={page} tag={tag} sort={sort} />
-      <ArticleFeed basePath={ROUTES.news} page={page} tag={tag} sort={sort} excludeFeatured />
-    </div>
-  )
-}
+    <>
+      <JsonLd data={itemList} />
 
-async function TrendingSection({ searchParams }: Pick<PageProps<"/news">, "searchParams">) {
-  const { tag } = parseFeedSearchParams(await searchParams)
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {result.data.items.map((item, index) => (
+          <NewsCard key={item.id} item={item} priority={index === 0} />
+        ))}
+      </div>
 
-  return <TrendingTopics basePath={ROUTES.news} activeTag={tag} />
-}
-
-async function FeedJsonLd({
-  page,
-  tag,
-  sort,
-}: {
-  page: number
-  tag?: string
-  sort: "latest" | "popular"
-}) {
-  const result = await getArticleFeed({
-    module: "news",
-    page,
-    ...(tag ? { tag } : {}),
-    sort,
-  })
-
-  if (!result.ok) return null
-
-  return (
-    <JsonLd
-      data={buildCollectionPageJsonLd({
-        name: NEWS_TITLE,
-        description: NEWS_DESCRIPTION,
-        url: absoluteUrl(ROUTES.news),
-        items: result.data.items.map((article) => ({
-          name: article.title,
-          url: absoluteUrl(articleHref(article.primaryCategory.slug, article.slug)),
-        })),
-      })}
-    />
+      <Pagination
+        page={result.data.page}
+        pageCount={pageCount(result.data.total, PER_PAGE)}
+        basePath={ROUTES.news}
+      />
+    </>
   )
 }

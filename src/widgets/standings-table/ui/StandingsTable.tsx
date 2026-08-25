@@ -7,7 +7,6 @@ import { EmptyState } from "@/shared/ui/empty-state"
 import { SectionHeading } from "@/shared/ui/section-heading"
 
 export type StandingsTableProps = {
-  disciplineSlug: string
   standings: readonly StandingRow[]
   currency: string
   title?: string
@@ -15,7 +14,6 @@ export type StandingsTableProps = {
 }
 
 export function StandingsTable({
-  disciplineSlug,
   standings,
   currency,
   title = "Таблица",
@@ -66,7 +64,6 @@ export function StandingsTable({
                 </td>
                 <td className="py-3">
                   <TeamIdentity
-                    disciplineSlug={disciplineSlug}
                     slug={row.team.slug}
                     name={row.team.name}
                     logo={row.team.logo}
@@ -91,7 +88,7 @@ export function StandingsTable({
                   {row.mapDiff > 0 ? `+${row.mapDiff}` : row.mapDiff}
                 </td>
                 <td className="py-3 pr-4 text-right font-semibold tabular-nums text-foreground">
-                  {row.prize > 0 ? (
+                  {row.prize !== null && row.prize > 0 ? (
                     formatPrize(row.prize, currency, SITE.locale)
                   ) : (
                     <span className="text-subtle-foreground">—</span>

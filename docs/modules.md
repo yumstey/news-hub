@@ -6,7 +6,7 @@ Layer contents, and the rules for adding to them.
 
 | Layer | Directory | Sliced | Answers |
 | --- | --- | --- | --- |
-| pages | `app/` (the router) | By route | What is on this route? |
+| pages | `app/` (the router) | By route, with `_ui` / `_model` / `_lib` segments | What is on this route? |
 | app | `src/app` | No | How does the application start? |
 | widgets | `src/widgets` | Yes | What is this self-contained block? |
 | features | `src/features` | Yes | What can the user *do*? |
@@ -96,14 +96,17 @@ An entity owns a domain model, its Zod schema, its data access and its minimal p
 
 | Slice | Model | Used by |
 | --- | --- | --- |
-| `article` | Editorial article, any module | news, sport, esports |
+| `article` | Editorial article | news |
 | `category` | Article taxonomy | news |
-| `author` | Byline | news, sport |
-| `discipline` | Sport or esport discipline | sport, esports |
-| `match` | Fixture / result | esports, sport |
-| `team` | Competitive team | esports, sport |
-| `player` | Competitor | esports |
-| `tournament` | Competition | esports |
+| `author` | Byline | news |
+| `match` | Fixture / result | matches, results, team, event |
+| `team` | Competitive team | teams, rankings, match, event |
+| `player` | Competitor | players, roster, match |
+| `tournament` | Competition | events |
+
+There is no `discipline` slice. A single-discipline platform has nothing to parameterise, so
+the concept was removed rather than carried as a constant: no repository takes a discipline
+argument, no model carries a discipline field, and no URL contains one.
 
 Standard shape:
 

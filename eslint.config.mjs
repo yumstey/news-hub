@@ -34,7 +34,7 @@ const eslintConfig = defineConfig([
     },
   },
   {
-    files: ["src/shared/api/server/**", "src/shared/config/server/**"],
+    files: ["src/shared/api/pandaScore.ts", "src/shared/config/server/**"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -65,7 +65,8 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/shared/api/server", "@/shared/api/server/**"],
+              group: ["@/shared/api"],
+              importNames: ["pandaOne", "pandaList", "pandaPage"],
               message:
                 "Server transport is reached through an entity repository, not directly.",
             },

@@ -1,9 +1,17 @@
+import { ExternalLink } from "lucide-react"
 import Link from "next/link"
 
 import { FOOTER_NAV, ROUTES, SITE } from "@/shared/config"
 import { Container, Stack } from "@/shared/ui/container"
 import { Separator } from "@/shared/ui/separator"
 import { Heading, Text } from "@/shared/ui/typography"
+
+const DATA_SOURCES = [
+  { label: "PandaScore", url: "https://pandascore.co" },
+  { label: "Valve Regional Standings", url: "https://github.com/ValveSoftware/counter-strike_regional_standings" },
+  { label: "HLTV", url: "https://www.hltv.org" },
+  { label: "Counter-Strike 2", url: "https://www.counter-strike.net" },
+] as const
 
 export function SiteFooter() {
   return (
@@ -44,6 +52,37 @@ export function SiteFooter() {
             ))}
           </div>
         </div>
+
+        <Separator className="my-8" />
+
+        <Stack gap="sm">
+          <Heading
+            level={2}
+            size="subheading"
+            className="text-caption uppercase tracking-wider text-subtle-foreground"
+          >
+            Источники данных
+          </Heading>
+          <ul className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            {DATA_SOURCES.map((source) => (
+              <li key={source.url}>
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noopener noreferrer external"
+                  className="inline-flex items-center gap-1.5 rounded-control text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                >
+                  {source.label}
+                  <ExternalLink aria-hidden="true" className="size-3.5" />
+                </a>
+              </li>
+            ))}
+          </ul>
+          <Text size="caption" tone="subtle">
+            Расписание, результаты и профили — PandaScore. Мировой рейтинг — официальные
+            региональные таблицы Valve. Новости — HLTV.
+          </Text>
+        </Stack>
 
         <Separator className="my-8" />
 

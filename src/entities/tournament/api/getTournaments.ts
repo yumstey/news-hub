@@ -1,42 +1,56 @@
 import { cacheLife, cacheTag } from "next/cache"
 
-import { apiError, fail, ok } from "@/shared/api"
+import { ok, pandaList } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
-import { disciplineTag } from "@/shared/config"
+import { CS2_MODULE, feedTag } from "@/shared/config"
 
-import type { Tournament, TournamentStatus } from "../model/tournament"
-import { toTournament } from "./tournamentMapper"
-import { parseTournamentSource } from "./parseTournamentSource"
+import type { Tournament } from "../model/tournament"
+import {
+  CS2_PATH,
+  RELEVANT_TIERS,
+  SCOPE_PAGE_SIZE,
+} from "./pandaTournamentEndpoints"
+import { groupBySerie, toTournament } from "./pandaTournamentMapper"
+import { pandaStageSchema } from "./pandaTournamentSchema"
+import type { PandaStageWire } from "./pandaTournamentSchema"
 
-const STATUS_ORDER: Record<TournamentStatus, number> = {
-  ongoing: 0,
-  upcoming: 1,
-  finished: 2,
+const TIER_RANK: Record<Tournament["tier"], number> = { s: 0, a: 1, b: 2, c: 3 }
+
+async function stages(scope: "running" | "upcoming" | "past"): Promise<PandaStageWire[]> {
+  const result = await pandaList(`${CS2_PATH}/tournaments/${scope}`, pandaStageSchema, {
+    "filter[tier]": RELEVANT_TIERS,
+    "page[size]": SCOPE_PAGE_SIZE,
+    sort: scope === "past" ? "-begin_at" : "begin_at",
+  })
+
+  return result.ok ? result.data : []
 }
 
-export async function getTournaments(
-  disciplineSlug: string,
-  status?: TournamentStatus,
-): Promise<ApiResult<Tournament[]>> {
+export async function getTournaments(): Promise<ApiResult<Tournament[]>> {
   "use cache"
   cacheLife("reference")
-  cacheTag(disciplineTag(disciplineSlug))
+  cacheTag(feedTag(CS2_MODULE))
 
-  const source = parseTournamentSource()
+  const [running, upcoming, past] = await Promise.all([
+    stages("running"),
+    stages("upcoming"),
+    stages("past"),
+  ])
 
-  if (source === null) {
-    return fail(apiError("contract", "Список турниров не соответствует контракту"))
-  }
+  const now = new Date()
+  const tournaments = groupBySerie([...running, ...upcoming, ...past]).flatMap((group) => {
+    const tournament = toTournament(group, now)
 
-  const tournaments = source
-    .filter((wire) => wire.discipline.slug === disciplineSlug)
-    .filter((wire) => (status === undefined ? true : wire.status === status))
-    .map(toTournament)
-    .sort((left, right) => {
-      const byStatus = STATUS_ORDER[left.status] - STATUS_ORDER[right.status]
-      if (byStatus !== 0) return byStatus
+    return tournament === null ? [] : [tournament]
+  })
+
+  return ok(
+    tournaments.sort((left, right) => {
+      const byTier = TIER_RANK[left.tier] - TIER_RANK[right.tier]
+
+      if (byTier !== 0) return byTier
+
       return right.startsAt.getTime() - left.startsAt.getTime()
-    })
-
-  return ok(tournaments)
+    }),
+  )
 }

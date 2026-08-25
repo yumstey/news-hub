@@ -3,7 +3,6 @@ export {
   playerRoleSchema,
   playerRefSchema,
   playerStatsSchema,
-  playerWireSchema,
   playerAchievementSchema,
   PLAYER_ROLE_LABEL,
 } from "./model/player"
@@ -12,7 +11,6 @@ export type {
   PlayerRole,
   PlayerRef,
   Player,
-  PlayerWire,
   PlayerStats,
   PlayerTeamRef,
   PlayerAchievement,
@@ -25,3 +23,7 @@ export { getPlayerBySlug } from "./api/getPlayerBySlug"
 export { getTeamPlayers } from "./api/getTeamPlayers"
 export { PlayerIdentity } from "./ui/PlayerIdentity"
 export type { PlayerIdentityProps } from "./ui/PlayerIdentity"
+export { searchPlayers } from "./api/searchPlayers"
+export { PlayerCard, PlayersGridSkeleton } from "./ui/PlayerCard"
+export { getPlayerCareer, EMPTY_CAREER } from "./api/getPlayerCareer"
+export type { PlayerCareer, CareerEvent } from "./api/getPlayerCareer"

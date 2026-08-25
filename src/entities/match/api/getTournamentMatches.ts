@@ -1,15 +1,15 @@
 import { cacheLife, cacheTag } from "next/cache"
 
-import { apiError, fail, ok } from "@/shared/api"
+import { fail, ok, pandaList } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
 import { tournamentTag } from "@/shared/config"
 
 import type { Match } from "../model/match"
-import { toMatch } from "./matchMapper"
-import { byStartDesc, parseMatchSource } from "./parseMatchSource"
+import { pageSize } from "./pandaEndpoints"
+import { toMatchList } from "./pandaMatchMapper"
+import { pandaMatchSchema } from "./pandaMatchSchema"
 
 export async function getTournamentMatches(
-  disciplineSlug: string,
   tournamentSlug: string,
   limit?: number,
 ): Promise<ApiResult<Match[]>> {
@@ -17,19 +17,15 @@ export async function getTournamentMatches(
   cacheLife("schedule")
   cacheTag(tournamentTag(tournamentSlug))
 
-  const source = parseMatchSource()
+  const result = await pandaList(
+    `/tournaments/${encodeURIComponent(tournamentSlug)}/matches`,
+    pandaMatchSchema,
+    { "page[size]": pageSize(limit), sort: "-begin_at" },
+  )
 
-  if (source === null) {
-    return fail(apiError("contract", "Матчи турнира не соответствуют контракту"))
-  }
+  if (!result.ok) return fail(result.error)
 
-  const matches = source
-    .filter(
-      (wire) =>
-        wire.discipline.slug === disciplineSlug && wire.tournament.slug === tournamentSlug,
-    )
-    .sort(byStartDesc)
-    .map(toMatch)
+  const matches = toMatchList(result.data)
 
   return ok(limit === undefined ? matches : matches.slice(0, limit))
 }

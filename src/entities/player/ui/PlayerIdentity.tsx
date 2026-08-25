@@ -8,18 +8,16 @@ import type { Country, ImageAsset } from "@/shared/model"
 import { playerHref } from "../lib/playerHref"
 
 export type PlayerIdentityProps = {
-  disciplineSlug: string
   slug: string
   nickname: string
   photo?: ImageAsset | null
-  country: Country
+  country: Country | null
   size?: "sm" | "md"
   showCountryName?: boolean
   className?: string
 }
 
 export function PlayerIdentity({
-  disciplineSlug,
   slug,
   nickname,
   photo,
@@ -33,7 +31,7 @@ export function PlayerIdentity({
       <Avatar name={nickname} src={photo?.url} size={size === "sm" ? "sm" : "md"} shape="rounded" />
       <span className="flex min-w-0 flex-col">
         <Link
-          href={playerHref(disciplineSlug, slug)}
+          href={playerHref(slug)}
           className="truncate text-sm font-semibold text-foreground transition-colors duration-150 hover:text-primary"
         >
           {nickname}

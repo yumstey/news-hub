@@ -1,7 +1,0 @@
-export { categoryIdSchema, categoryRefSchema, categoryWireSchema } from "./model/category"
-export type { CategoryId, CategoryRef, Category, CategoryWire } from "./model/category"
-export { categoryHref } from "./lib/categoryHref"
-export { getNewsCategories } from "./api/getNewsCategories"
-export { getNewsCategoryBySlug } from "./api/getNewsCategoryBySlug"
-export { CategoryChip } from "./ui/CategoryChip"
-export type { CategoryChipProps } from "./ui/CategoryChip"

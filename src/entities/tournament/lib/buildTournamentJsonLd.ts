@@ -11,7 +11,7 @@ export function buildTournamentJsonLd(tournament: Tournament): JsonLdNode {
     "@type": "SportsEvent",
     name: tournament.name,
     description: tournament.description,
-    url: absoluteUrl(tournamentHref(tournament.discipline.slug, tournament.slug)),
+    url: absoluteUrl(tournamentHref(tournament.slug)),
     startDate: tournament.startsAt.toISOString(),
     endDate: tournament.endsAt.toISOString(),
     eventStatus: "https://schema.org/EventScheduled",
@@ -23,7 +23,7 @@ export function buildTournamentJsonLd(tournament: Tournament): JsonLdNode {
       name: tournament.location.city,
       address: {
         "@type": "PostalAddress",
-        addressCountry: tournament.location.country.code,
+        addressCountry: tournament.location.country?.code ?? "",
         addressLocality: tournament.location.city,
       },
     },

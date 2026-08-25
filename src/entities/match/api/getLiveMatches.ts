@@ -1,25 +1,22 @@
 import { connection } from "next/server"
 
-import { apiError, fail, ok } from "@/shared/api"
+import { fail, ok, pandaList } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
 
 import type { Match } from "../model/match"
-import { toMatch } from "./matchMapper"
-import { byStartAsc, parseMatchSource } from "./parseMatchSource"
+import { CS2_PATH, pageSize } from "./pandaEndpoints"
+import { toMatchList } from "./pandaMatchMapper"
+import { pandaMatchSchema } from "./pandaMatchSchema"
 
-export async function getLiveMatches(disciplineSlug: string): Promise<ApiResult<Match[]>> {
+export async function getLiveMatches(): Promise<ApiResult<Match[]>> {
   await connection()
 
-  const source = parseMatchSource()
+  const result = await pandaList(`${CS2_PATH}/matches/running`, pandaMatchSchema, {
+    "page[size]": pageSize(undefined),
+    sort: "begin_at",
+  })
 
-  if (source === null) {
-    return fail(apiError("contract", "Живые матчи не соответствуют контракту"))
-  }
+  if (!result.ok) return fail(result.error)
 
-  return ok(
-    source
-      .filter((wire) => wire.discipline.slug === disciplineSlug && wire.status === "live")
-      .sort(byStartAsc)
-      .map(toMatch),
-  )
+  return ok(toMatchList(result.data))
 }

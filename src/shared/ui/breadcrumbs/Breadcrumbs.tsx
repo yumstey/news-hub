@@ -2,10 +2,6 @@ import type { Route } from "next"
 import Link from "next/link"
 
 import type {
-  ArticlePath,
-  CategoryPath,
-  DisciplineSectionPath,
-  EsportsArticlePath,
   EventPath,
   MatchPath,
   PlayerPath,
@@ -15,14 +11,10 @@ import { cn } from "@/shared/lib/style"
 
 export type BreadcrumbLink =
   | Route
-  | CategoryPath
-  | ArticlePath
-  | DisciplineSectionPath
   | MatchPath
   | TeamPath
   | PlayerPath
   | EventPath
-  | EsportsArticlePath
 
 export type BreadcrumbItem = {
   label: string

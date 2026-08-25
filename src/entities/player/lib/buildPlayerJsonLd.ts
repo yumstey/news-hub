@@ -6,14 +6,14 @@ import type { Player } from "../model/player"
 import { playerHref } from "./playerHref"
 
 export function buildPlayerJsonLd(player: Player): JsonLdNode {
-  const url = absoluteUrl(playerHref(player.discipline.slug, player.slug))
+  const url = absoluteUrl(playerHref(player.slug))
 
   return {
     "@context": "https://schema.org",
     "@type": "Person",
     name: player.realName,
     alternateName: player.nickname,
-    nationality: player.country.name,
+    nationality: (player.country?.name ?? ""),
     url,
     ...(player.team
       ? {

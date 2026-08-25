@@ -1,34 +1,30 @@
 import { cacheLife, cacheTag } from "next/cache"
 
-import { apiError, fail, ok } from "@/shared/api"
+import { apiError, fail, ok, pandaOne } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
 import { matchTag } from "@/shared/config"
 
 import type { Match } from "../model/match"
-import { toMatch } from "./matchMapper"
-import { parseMatchSource } from "./parseMatchSource"
+import { getMatchLineups } from "./getMatchLineups"
+import { toMatch } from "./pandaMatchMapper"
+import { pandaMatchSchema } from "./pandaMatchSchema"
 
-export async function getMatchById(
-  disciplineSlug: string,
-  id: string,
-): Promise<ApiResult<Match>> {
+export async function getMatchById(id: string): Promise<ApiResult<Match>> {
   "use cache"
   cacheLife("schedule")
   cacheTag(matchTag(id))
 
-  const source = parseMatchSource()
+  const result = await pandaOne(`/matches/${encodeURIComponent(id)}`, pandaMatchSchema)
 
-  if (source === null) {
-    return fail(apiError("contract", "Матч не соответствует контракту"))
-  }
+  if (!result.ok) return fail(result.error)
 
-  const found = source.find(
-    (wire) => wire.discipline.slug === disciplineSlug && wire.id === id,
-  )
+  const match = toMatch(result.data)
 
-  if (!found) {
+  if (match === null) {
     return fail(apiError("not-found", `Матч «${id}» не найден`, 404))
   }
 
-  return ok(toMatch(found))
+  const [first, second] = match.teams
+
+  return ok({ ...match, lineups: await getMatchLineups(id, first.team.id, second.team.id) })
 }

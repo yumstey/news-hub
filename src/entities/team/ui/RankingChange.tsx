@@ -1,11 +1,13 @@
 import { cn } from "@/shared/lib/style"
 
 export type RankingChangeProps = {
-  change: number
+  change: number | null
   className?: string
 }
 
 export function RankingChange({ change, className }: RankingChangeProps) {
+  if (change === null) return null
+
   if (change === 0) {
     return (
       <span className={cn("text-caption text-subtle-foreground", className)}>

@@ -1,29 +1,29 @@
 import Link from "next/link"
 
-import { getTeamRankings, RankingChange, TeamForm, TeamIdentity } from "@/entities/team"
-import { disciplineSectionHref } from "@/entities/discipline"
+import { getTeamRankings, RankingChange, TeamIdentity } from "@/entities/team"
+import { ROUTES } from "@/shared/config"
 import { cn } from "@/shared/lib/style"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { SectionHeading } from "@/shared/ui/section-heading"
 
 export type TeamRankingsProps = {
-  disciplineSlug: string
   limit?: number
   title?: string
   showMore?: boolean
-  compact?: boolean
+  emptyLabel?: string
+  emptyDescription?: string
   className?: string
 }
 
 export async function TeamRankings({
-  disciplineSlug,
   limit,
   title,
   showMore = false,
-  compact = false,
+  emptyLabel,
+  emptyDescription,
   className,
 }: TeamRankingsProps) {
-  const result = await getTeamRankings(disciplineSlug, limit)
+  const result = await getTeamRankings(limit)
 
   if (!result.ok) {
     return (
@@ -36,7 +36,11 @@ export async function TeamRankings({
     )
   }
 
-  if (result.data.length === 0) return null
+  if (result.data.length === 0) {
+    if (emptyLabel === undefined) return null
+
+    return <EmptyState title={emptyLabel} description={emptyDescription} className={className} />
+  }
 
   return (
     <section className={cn("flex flex-col gap-4", className)}>
@@ -46,7 +50,7 @@ export async function TeamRankings({
           action={
             showMore ? (
               <Link
-                href={disciplineSectionHref(disciplineSlug, "rankings")}
+                href={ROUTES.rankings}
                 className="text-caption font-medium text-primary transition-colors duration-150 hover:text-primary-hover"
               >
                 Весь рейтинг
@@ -57,7 +61,7 @@ export async function TeamRankings({
       ) : null}
 
       <div className="overflow-x-auto rounded-surface border border-border bg-surface">
-        <table className="w-full min-w-140 border-collapse text-sm">
+        <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-border text-overline uppercase text-subtle-foreground">
               <th scope="col" className="w-14 py-3 pl-4 text-left font-semibold">
@@ -66,35 +70,24 @@ export async function TeamRankings({
               <th scope="col" className="py-3 text-left font-semibold">
                 Команда
               </th>
-              {compact ? null : (
-                <th scope="col" className="px-3 py-3 text-left font-semibold">
-                  Регион
-                </th>
-              )}
-              <th scope="col" className="px-3 py-3 text-right font-semibold">
+              <th scope="col" className="py-3 pr-4 text-right font-semibold">
                 Очки
               </th>
-              {compact ? null : (
-                <th scope="col" className="py-3 pr-4 text-right font-semibold">
-                  Форма
-                </th>
-              )}
             </tr>
           </thead>
           <tbody>
             {result.data.map((row) => (
-              <tr key={row.team.id} className="border-b border-border last:border-0">
+              <tr key={row.team.id} className="border-b border-border last:border-0 hover:bg-muted">
                 <td className="py-3 pl-4">
                   <span className="flex items-center gap-2">
                     <span className="w-5 text-sm font-bold tabular-nums text-foreground">
-                      {row.rank}
+                      {row.rank} 
                     </span>
                     <RankingChange change={row.change} />
                   </span>
                 </td>
                 <td className="py-3">
                   <TeamIdentity
-                    disciplineSlug={disciplineSlug}
                     slug={row.team.slug}
                     name={row.team.name}
                     logo={row.team.logo}
@@ -102,17 +95,9 @@ export async function TeamRankings({
                     size="sm"
                   />
                 </td>
-                {compact ? null : (
-                  <td className="px-3 py-3 text-caption text-muted-foreground">{row.region}</td>
-                )}
-                <td className="px-3 py-3 text-right font-semibold tabular-nums text-foreground">
+                <td className="py-3 pr-4 text-right font-semibold tabular-nums text-foreground">
                   {row.points}
                 </td>
-                {compact ? null : (
-                  <td className="py-3 pr-4 text-right">
-                    <TeamForm form={row.form} className="justify-end" />
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>

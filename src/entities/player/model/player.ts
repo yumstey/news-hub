@@ -1,7 +1,5 @@
 import { z } from "zod"
 
-import { disciplineRefSchema } from "@/entities/discipline/@x/player"
-import type { DisciplineRef } from "@/entities/discipline/@x/player"
 import { countrySchema, imageAssetSchema, slugSchema } from "@/shared/model"
 import type { Country, ImageAsset, SeoFields, Slug } from "@/shared/model"
 
@@ -25,19 +23,11 @@ export const playerRefSchema = z.object({
   slug: slugSchema,
   nickname: z.string().min(1),
   photo: imageAssetSchema.nullable(),
-  country: countrySchema,
-  role: playerRoleSchema,
+  country: countrySchema.nullable(),
+  role: playerRoleSchema.nullable(),
 })
 
 export type PlayerRef = z.infer<typeof playerRefSchema>
-
-const playerTeamSchema = z.object({
-  id: z.string().min(1),
-  slug: slugSchema,
-  name: z.string().min(1),
-  short_name: z.string().min(1),
-  logo: imageAssetSchema,
-})
 
 export const playerStatsSchema = z.object({
   rating: z.number(),
@@ -59,27 +49,6 @@ export const playerAchievementSchema = z.object({
 
 export type PlayerAchievement = z.infer<typeof playerAchievementSchema>
 
-export const playerWireSchema = z.object({
-  id: playerIdSchema,
-  slug: slugSchema,
-  discipline: disciplineRefSchema,
-  nickname: z.string().min(1),
-  real_name: z.string().min(1),
-  photo: imageAssetSchema.nullable(),
-  country: countrySchema,
-  role: playerRoleSchema,
-  age: z.number().int().positive(),
-  team: playerTeamSchema.nullable(),
-  stats: playerStatsSchema,
-  achievements: z.array(playerAchievementSchema),
-  seo: z.object({
-    title: z.string().min(1),
-    description: z.string().min(1),
-  }),
-})
-
-export type PlayerWire = z.infer<typeof playerWireSchema>
-
 export type PlayerStats = {
   rating: number
   kd: number
@@ -97,20 +66,20 @@ export type PlayerTeamRef = {
   name: string
   shortName: string
   logo: ImageAsset
+  darkLogo: ImageAsset | null
 }
 
 export type Player = {
   id: PlayerId
   slug: Slug
-  discipline: DisciplineRef
   nickname: string
-  realName: string
+  realName: string | null
   photo: ImageAsset | null
-  country: Country
-  role: PlayerRole
-  age: number
+  country: Country | null
+  role: PlayerRole | null
+  age: number | null
   team: PlayerTeamRef | null
-  stats: PlayerStats
+  stats: PlayerStats | null
   achievements: PlayerAchievement[]
   seo: SeoFields
   ref: PlayerRef

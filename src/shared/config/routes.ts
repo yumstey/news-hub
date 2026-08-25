@@ -3,37 +3,25 @@ import type { Route } from "next"
 export const ROUTES = {
   home: "/",
   news: "/news",
-  sport: "/sport",
-  esports: "/esports",
+  matches: "/matches",
+  results: "/results",
+  rankings: "/rankings",
+  teams: "/teams",
+  players: "/players",
+  events: "/events",
 } as const satisfies Record<string, Route>
 
-export type CategoryPath = `/news/${string}`
-export type ArticlePath = `/news/${string}/${string}`
-export type FeedBasePath = "/news" | CategoryPath
-export type FeedHref = FeedBasePath | `${FeedBasePath}?${string}`
+export type SectionKey = keyof typeof ROUTES
 
-export type DisciplinePath = `/esports/${string}`
-export type EsportsNewsPath = `/esports/${string}/news`
-export type MatchPath = `/esports/${string}/matches/${string}`
-export type TeamPath = `/esports/${string}/teams/${string}`
-export type PlayerPath = `/esports/${string}/players/${string}`
-export type EventPath = `/esports/${string}/events/${string}`
-export type EsportsArticlePath = `/esports/${string}/news/${string}`
-
-export type DisciplineSectionPath =
-  | DisciplinePath
-  | EsportsNewsPath
-  | `/esports/${string}/matches`
-  | `/esports/${string}/results`
-  | `/esports/${string}/rankings`
-  | `/esports/${string}/teams`
-  | `/esports/${string}/players`
-  | `/esports/${string}/events`
+export type MatchPath = `/matches/${string}`
+export type TeamPath = `/teams/${string}`
+export type PlayerPath = `/players/${string}`
+export type EventPath = `/events/${string}`
 
 export type NavItem = {
+  readonly section: SectionKey
   readonly label: string
   readonly href: Route
-  readonly description?: string
 }
 
 export type NavGroup = {
@@ -42,19 +30,31 @@ export type NavGroup = {
 }
 
 export const MAIN_NAV: readonly NavItem[] = [
-  { label: "Главная", href: ROUTES.home },
-  { label: "Новости", href: ROUTES.news },
-  { label: "Спорт", href: ROUTES.sport },
-  { label: "Киберспорт", href: ROUTES.esports },
+  { section: "home", label: "Обзор", href: ROUTES.home },
+  { section: "news", label: "Новости", href: ROUTES.news },
+  { section: "matches", label: "Матчи", href: ROUTES.matches },
+  { section: "results", label: "Результаты", href: ROUTES.results },
+  { section: "rankings", label: "Рейтинг", href: ROUTES.rankings },
+  { section: "teams", label: "Команды", href: ROUTES.teams },
+  { section: "players", label: "Игроки", href: ROUTES.players },
+  { section: "events", label: "Ивенты", href: ROUTES.events },
 ]
 
 export const FOOTER_NAV: readonly NavGroup[] = [
   {
-    title: "Разделы",
+    title: "Соревнования",
     items: [
-      { label: "Новости", href: ROUTES.news },
-      { label: "Спорт", href: ROUTES.sport },
-      { label: "Киберспорт", href: ROUTES.esports },
+      { section: "matches", label: "Матчи", href: ROUTES.matches },
+      { section: "results", label: "Результаты", href: ROUTES.results },
+      { section: "events", label: "Ивенты", href: ROUTES.events },
+    ],
+  },
+  {
+    title: "Сцена",
+    items: [
+      { section: "rankings", label: "Рейтинг", href: ROUTES.rankings },
+      { section: "teams", label: "Команды", href: ROUTES.teams },
+      { section: "players", label: "Игроки", href: ROUTES.players },
     ],
   },
 ]

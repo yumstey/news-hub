@@ -7,6 +7,8 @@ export {
   seoFieldsSchema,
   timestampsWireSchema,
   toTimestamps,
+  toSlug,
+  toCountry,
 } from "./primitives"
 export type {
   Slug,

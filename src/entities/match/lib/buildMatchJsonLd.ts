@@ -13,7 +13,7 @@ export function buildMatchJsonLd(match: Match): JsonLdNode {
     "@type": "SportsEvent",
     name: `${first.team.name} — ${second.team.name}`,
     description: `${match.tournament.name}, ${match.stage}`,
-    url: absoluteUrl(matchHref(match.discipline.slug, match.id)),
+    url: absoluteUrl(matchHref(match.id)),
     startDate: match.startsAt.toISOString(),
     eventStatus:
       match.status === "cancelled"

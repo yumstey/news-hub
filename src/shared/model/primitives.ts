@@ -21,6 +21,27 @@ export const countrySchema = z.object({
 
 export type Country = z.infer<typeof countrySchema>
 
+const regionNames = new Intl.DisplayNames(["ru"], { type: "region" })
+
+export function toSlug(value: string): Slug {
+  const normalised = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+
+  return slugSchema.parse(normalised.length > 0 ? normalised : "unknown")
+}
+
+export function toCountry(code: string | null | undefined): Country | null {
+  if (code === null || code === undefined) return null
+
+  const upper = code.trim().toUpperCase()
+
+  if (upper.length !== 2) return null
+
+  return { code: upper, name: regionNames.of(upper) ?? upper }
+}
+
 export const imageAssetSchema = z.object({
   url: z.string().min(1),
   width: z.number().int().positive(),

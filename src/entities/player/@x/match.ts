@@ -1,3 +1,6 @@
+export { pandaPlayerSchema } from "../api/pandaPlayerSchema"
+export type { PandaPlayerWire } from "../api/pandaPlayerSchema"
+export { toPlayerRef } from "../api/pandaPlayerMapper"
 export { playerRefSchema, playerRoleSchema, PLAYER_ROLE_LABEL } from "../model/player"
 export type { PlayerRef, PlayerRole } from "../model/player"
 export { playerHref } from "../lib/playerHref"
