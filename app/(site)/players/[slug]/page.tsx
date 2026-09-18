@@ -1,7 +1,19 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
-import { buildPlayerJsonLd, EMPTY_CAREER, getPlayerBySlug, getPlayerCareer } from "@/entities/player"
+import {
+  buildPlayerJsonLd,
+  countTitles,
+  EMPTY_CAREER,
+  EMPTY_PLAYER_PROFILE,
+  EMPTY_RECORD,
+  getPlayerBySlug,
+  getPlayerCareer,
+  getPlayerProfile,
+  getPlayerRecord,
+  getFreePhotos,
+  preferPhoto,
+} from "@/entities/player"
 import type { Player } from "@/entities/player"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
@@ -14,6 +26,9 @@ import { breadcrumbsJsonLd, trail } from "../../_lib/breadcrumbs"
 import { resolveSlug } from "../../_lib/params"
 import { PlayerCareer } from "./_ui/PlayerCareer"
 import { PlayerHero } from "./_ui/PlayerHero"
+import { PlayerHonours } from "./_ui/PlayerHonours"
+import { PlayerProfileCard } from "./_ui/PlayerProfileCard"
+import { PlayerRecord } from "./_ui/PlayerRecord"
 
 export { generateMetadata } from "./_lib/metadata"
 
@@ -74,23 +89,62 @@ async function PlayerView({ params }: Pick<PageProps<"/players/[slug]">, "params
           />
         </Suspense>
       )}
-
-      <Text size="caption" tone="subtle">
-        Индивидуальная статистика (рейтинг, K/D, ADR, KAST) не публикуется на текущем тарифе
-        данных.
-      </Text>
     </>
   )
 }
 
+/** PandaScore часто не отдаёт возраст — считаем его от даты рождения с Liquipedia. */
+function yearsSince(birthDate: Date | null): number | null {
+  if (birthDate === null) return null
+
+  const now = new Date()
+  const years = now.getUTCFullYear() - birthDate.getUTCFullYear()
+  const passed =
+    now.getUTCMonth() > birthDate.getUTCMonth() ||
+    (now.getUTCMonth() === birthDate.getUTCMonth() && now.getUTCDate() >= birthDate.getUTCDate())
+
+  const age = passed ? years : years - 1
+
+  return age > 0 && age < 100 ? age : null
+}
+
 async function Overview({ player }: { player: Player }) {
-  const result = await getPlayerCareer(player.slug)
-  const career = result.ok ? result.data : EMPTY_CAREER
+  const [careerResult, recordResult, profileResult, photosResult] = await Promise.all([
+    getPlayerCareer(player.slug),
+    getPlayerRecord(player.slug, player.team?.id ?? null),
+    getPlayerProfile(player.nickname, player.realName),
+    getFreePhotos([player.nickname]),
+  ])
+
+  const career = careerResult.ok ? careerResult.data : EMPTY_CAREER
+  const record = recordResult.ok ? recordResult.data : EMPTY_RECORD
+  const profile = profileResult.ok ? profileResult.data : EMPTY_PLAYER_PROFILE
+  const titles = countTitles(career.events, record.teamIds)
+  const photo = preferPhoto(
+    player.photo?.url ?? null,
+    photosResult.ok ? photosResult.data[player.nickname.toLowerCase()] : undefined,
+  )
 
   return (
     <>
-      <PlayerHero player={player} career={career} />
-      <PlayerCareer career={career} />
+      <PlayerHero
+        player={player}
+        career={career}
+        record={record}
+        titles={titles}
+        age={player.age ?? yearsSince(profile.birthDate)}
+        role={profile.roles[0] ?? null}
+        photo={photo}
+      />
+      <PlayerProfileCard profile={profile} />
+      <PlayerRecord record={record} />
+      <PlayerHonours profile={profile} />
+      <PlayerCareer career={career} teamIds={record.teamIds} />
+
+      <Text size="caption" tone="subtle">
+        Персональные показатели за раунд (рейтинг, ADR, KAST) не входят в текущий тариф
+        PandaScore, поэтому статистика ниже собрана по результатам матчей и данным Liquipedia.
+      </Text>
     </>
   )
 }

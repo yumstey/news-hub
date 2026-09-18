@@ -24,3 +24,13 @@ export { TournamentTierBadge } from "./ui/TournamentTierBadge"
 export type { TournamentTierBadgeProps } from "./ui/TournamentTierBadge"
 export { searchTournaments } from "./api/searchTournaments"
 export { TournamentCard, TournamentCardSkeleton } from "./ui/TournamentCard"
+export { getTournamentBracket } from "./api/getTournamentBracket"
+export type { TournamentStage } from "./model/tournament"
+export type {
+  TournamentBracket,
+  BracketMatch,
+  BracketSeat,
+  BracketSide,
+  BracketFeed,
+  BracketFeedKind,
+} from "./api/getTournamentBracket"

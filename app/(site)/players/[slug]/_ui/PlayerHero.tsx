@@ -2,8 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { PLAYER_ROLE_LABEL } from "@/entities/player"
-import type { Player } from "@/entities/player"
-import type { PlayerCareer } from "@/entities/player"
+import type { FreePhoto, Player, PlayerCareer, PlayerRecord } from "@/entities/player"
 import { teamHref, TeamLogo } from "@/entities/team"
 import { formatDate } from "@/shared/lib/date"
 import { cn } from "@/shared/lib/style"
@@ -19,7 +18,24 @@ function Stat({ label, value }: { label: string; value: string }) {
   )
 }
 
-export function PlayerHero({ player, career }: { player: Player; career: PlayerCareer }) {
+export function PlayerHero({
+  player,
+  career,
+  record,
+  titles,
+  age,
+  role,
+  photo,
+}: {
+  player: Player
+  career: PlayerCareer
+  record: PlayerRecord
+  titles: number
+  age: number | null
+  role: string | null
+  /** Выбранное фото: своё из PandaScore или свободное с Commons (тогда с подписью автора). */
+  photo: { url: string; credit: FreePhoto | null } | null
+}) {
   return (
     <div className="animate-rise-in overflow-hidden rounded-surface border border-border bg-surface">
       <div className="relative grid gap-0 sm:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
@@ -28,7 +44,7 @@ export function PlayerHero({ player, career }: { player: Player; career: PlayerC
             aria-hidden="true"
             className="pointer-events-none absolute -left-10 -top-10 size-56 rounded-full bg-primary/20 blur-3xl"
           />
-          {player.photo === null ? (
+          {photo === null ? (
             <span
               aria-hidden="true"
               className="absolute inset-0 flex items-center justify-center text-[8rem] font-bold leading-none text-border-strong"
@@ -37,13 +53,24 @@ export function PlayerHero({ player, career }: { player: Player; career: PlayerC
             </span>
           ) : (
             <Image
-              src={player.photo.url}
+              src={photo.url}
               alt={player.nickname}
               fill
-              priority
+              loading="eager"
+              fetchPriority="high"
               sizes="(min-width: 640px) 22rem, 100vw"
               className="object-cover object-top"
             />
+          )}
+          {photo?.credit == null ? null : (
+            <a
+              href={photo.credit.source}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="absolute inset-x-0 bottom-0 truncate bg-black/60 px-3 py-1 text-overline normal-case tracking-normal text-white/80 hover:text-white"
+            >
+              Фото: {photo.credit.author}, {photo.credit.license}
+            </a>
           )}
         </div>
 
@@ -88,14 +115,22 @@ export function PlayerHero({ player, career }: { player: Player; career: PlayerC
             </Link>
           )}
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Возраст" value={player.age === null ? "—" : String(player.age)} />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <Stat label="Возраст" value={age === null ? "—" : String(age)} />
             <Stat
               label="Роль"
-              value={player.role === null ? "—" : PLAYER_ROLE_LABEL[player.role]}
+              value={player.role === null ? (role ?? "—") : PLAYER_ROLE_LABEL[player.role]}
+            />
+            <Stat label="Трофеев" value={String(titles)} />
+            <Stat
+              label="Винрейт"
+              value={record.matches === 0 ? "—" : `${record.winrate}%`}
+            />
+            <Stat
+              label="Матчей"
+              value={record.matches === 0 ? "—" : `${record.wins}—${record.losses}`}
             />
             <Stat label="Турниров" value={String(career.eventCount)} />
-            <Stat label="Топ-турниров" value={String(career.tierOneCount)} />
           </div>
 
           {career.firstSeen === null ? null : (

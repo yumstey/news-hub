@@ -64,6 +64,7 @@ export const streamLinkSchema = z.object({
   platform: z.string().min(1),
   url: z.url(),
   language: z.string().min(1),
+  official: z.boolean(),
   viewers: z.number().int().nonnegative(),
 })
 

@@ -52,6 +52,22 @@
   --color-overlay: oklch(20% 0.02 265 / 0.55);
   --color-skeleton: oklch(93.5% 0.005 265);
 
+  /* Цвета редкостей из клиента CS2: игроки узнают их с первого взгляда,
+     поэтому они одинаковы в обеих темах. */
+  --color-rarity-consumer: #b0c3d9;
+  --color-rarity-industrial: #5e98d9;
+  --color-rarity-milspec: #4b69ff;
+  --color-rarity-restricted: #8847ff;
+  --color-rarity-classified: #d32ce6;
+  --color-rarity-covert: #eb4b4b;
+  --color-rarity-gold: #e4ae39;
+  --color-stattrak: #cf6a32;
+  --color-youtube: #ff0033;
+
+  /* Стороны матча: Т — тёплый, КТ — холодный, как в интерфейсе игры. */
+  --color-side-t: #e0a43a;
+  --color-side-ct: #5d9be8;
+
   --text-display: clamp(2.25rem, 1.6rem + 3.2vw, 3.75rem);
   --text-display--line-height: 1.04;
   --text-display--letter-spacing: -0.032em;
@@ -88,7 +104,7 @@
 
   --spacing-gutter: 1.25rem;
   --spacing-gutter-lg: 2rem;
-  --spacing-header: 4rem;
+  --spacing-header: 3.5rem;
   --spacing-section: 3rem;
   --spacing-section-lg: 5rem;
   --spacing-stack: 1.25rem;
@@ -257,6 +273,19 @@
   html {
     -webkit-text-size-adjust: 100%;
     text-rendering: optimizeLegibility;
+    /* Якоря (#bracket, #matches) не прячутся под липкую шапку и навигацию раздела. */
+    scroll-padding-top: calc(var(--spacing-header) + 3.5rem);
+  }
+
+  /* Элементы грида по умолчанию не уже своего содержимого (min-width: auto): длинное
+     название команды раздувало одноколоночную сетку на телефоне шире экрана. */
+  :where(.grid) > * {
+    min-width: 0;
+  }
+
+  /* Пока открыт модальный диалог (поиск, меню), страница под ним не прокручивается. */
+  html:has(dialog[open]:modal) {
+    overflow: hidden;
   }
 
   body {

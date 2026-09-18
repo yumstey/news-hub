@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
+import { EMPTY_EVENT_MAP_STATS, getEventMapStats, getGameMaps } from "@/entities/game-map"
 import { TeamIdentity } from "@/entities/team"
-import { buildTournamentJsonLd, getTournamentBySlug } from "@/entities/tournament"
+import { buildTournamentJsonLd, getTournamentBracket, getTournamentBySlug } from "@/entities/tournament"
+import type { Tournament, TournamentStage } from "@/entities/tournament"
 import { cn } from "@/shared/lib/style"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
@@ -10,9 +12,11 @@ import { JsonLd } from "@/shared/ui/json-ld"
 import { SectionNav } from "@/shared/ui/section-nav"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Heading } from "@/shared/ui/typography"
+import { MapStats } from "@/widgets/map-stats"
 import { MatchCenter, MatchCenterSkeleton } from "@/widgets/match-center"
 import { PrizeDistribution } from "@/widgets/prize-distribution"
 import { StandingsTable } from "@/widgets/standings-table"
+import { TournamentBracket, TournamentBracketSkeleton } from "@/widgets/tournament-bracket"
 
 import { breadcrumbsJsonLd, trail } from "../../_lib/breadcrumbs"
 import { resolveSlug } from "../../_lib/params"
@@ -41,8 +45,13 @@ async function EventView({ params }: Pick<PageProps<"/events/[slug]">, "params">
   const hasPrizes = tournament.standings.some((row) => row.prize !== null && row.prize > 0)
   const crumbs = trail({ label: "Турниры", href: "/events" }, { label: tournament.name })
 
+  const brackets = tournament.stages.filter(
+    (stage) => stage.hasBracket && stage.status !== "upcoming",
+  )
+
   const navItems = [
     { id: "overview", label: "Обзор" },
+    ...(brackets.length > 0 ? [{ id: "bracket", label: "Сетка" }] : []),
     ...(tournament.standings.length > 0 ? [{ id: "standings", label: "Таблица" }] : []),
     { id: "matches", label: "Матчи" },
     { id: "teams", label: "Участники" },
@@ -81,6 +90,20 @@ async function EventView({ params }: Pick<PageProps<"/events/[slug]">, "params">
               </div>
             ) : null}
 
+            {brackets.length > 0 ? (
+              <div id="bracket" className="flex flex-col gap-8">
+                {brackets.map((stage) => (
+                  <Suspense key={stage.id} fallback={<TournamentBracketSkeleton />}>
+                    <StageBracket stage={stage} />
+                  </Suspense>
+                ))}
+              </div>
+            ) : null}
+
+            <Suspense fallback={<Skeleton variant="block" className="h-56 w-full" />}>
+              <EventMaps tournament={tournament} />
+            </Suspense>
+
             <div id="matches">
               <Suspense fallback={<MatchCenterSkeleton rows={4} />}>
                 <MatchCenter
@@ -110,6 +133,7 @@ async function EventView({ params }: Pick<PageProps<"/events/[slug]">, "params">
                         slug={team.slug}
                         name={team.name}
                         logo={team.logo}
+                        darkLogo={team.darkLogo}
                         country={team.country}
                       />
                     </li>
@@ -122,6 +146,33 @@ async function EventView({ params }: Pick<PageProps<"/events/[slug]">, "params">
       </Container>
     </>
   )
+}
+
+async function EventMaps({ tournament }: { tournament: Tournament }) {
+  const [stats, catalogue] = await Promise.all([
+    getEventMapStats(
+      tournament.id,
+      // Двоеточия и решётки в названии мешают поиску по вики.
+      tournament.name.replace(/[:#]/g, " "),
+      tournament.teams.flatMap((team) => [team.name, team.shortName]),
+    ),
+    getGameMaps(),
+  ])
+
+  return (
+    <MapStats
+      stats={stats.ok ? stats.data : EMPTY_EVENT_MAP_STATS}
+      catalogue={catalogue.ok ? catalogue.data : []}
+    />
+  )
+}
+
+async function StageBracket({ stage }: { stage: TournamentStage }) {
+  const result = await getTournamentBracket(stage.id, stage.name, stage.status)
+
+  if (!result.ok || result.data === null) return null
+
+  return <TournamentBracket bracket={result.data} />
 }
 
 function EventSkeleton() {

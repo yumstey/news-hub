@@ -1,11 +1,16 @@
-import { cacheLife, cacheTag } from "next/cache"
+import { cacheTag } from "next/cache"
 import { z } from "zod"
 
 import { ok, pandaList } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
 import { playerTag } from "@/shared/config"
+import { cacheFor } from "@/shared/lib/cache"
 
-const HISTORY_SIZE = 60
+// Одна страница этого маршрута весит около 4 МБ: PandaScore вкладывает в каждую
+// стадию полный список матчей и не поддерживает выбор полей. Поэтому страницы
+// берутся последовательно — пик памяти остаётся в пределах одной.
+const PAGE_SIZE = 100
+const PAGES = 2
 
 const stageSchema = z.object({
   id: z.number().int(),
@@ -33,6 +38,8 @@ const stageSchema = z.object({
     .default(null),
 })
 
+type StageWire = z.infer<typeof stageSchema>
+
 export type CareerEvent = {
   id: string
   name: string
@@ -41,6 +48,8 @@ export type CareerEvent = {
   tier: "s" | "a" | "b" | "c"
   year: number
   startsAt: Date
+  /** Победитель турнира: сверяется с командами игрока, чтобы отметить титул. */
+  winnerId: string | null
 }
 
 export type PlayerCareer = {
@@ -65,26 +74,51 @@ function toTier(raw: string | null): CareerEvent["tier"] {
 
 export async function getPlayerCareer(playerSlug: string): Promise<ApiResult<PlayerCareer>> {
   "use cache"
-  cacheLife("reference")
   cacheTag(playerTag(playerSlug))
 
-  const result = await pandaList(
-    `/players/${encodeURIComponent(playerSlug)}/tournaments`,
-    stageSchema,
-    { "page[size]": HISTORY_SIZE, sort: "-begin_at" },
-  )
+  const stages: StageWire[] = []
+  let healthy = true
 
-  if (!result.ok) return ok(EMPTY_CAREER)
+  for (let page = 1; page <= PAGES; page += 1) {
+    const result = await pandaList(
+      `/players/${encodeURIComponent(playerSlug)}/tournaments`,
+      stageSchema,
+      { "page[size]": PAGE_SIZE, "page[number]": page, sort: "-begin_at" },
+    )
+
+    if (!result.ok) {
+      healthy = false
+      break
+    }
+
+    stages.push(...result.data)
+
+    if (result.data.length < PAGE_SIZE) break
+  }
+
+  cacheFor("reference", healthy)
+
+  if (stages.length === 0) return ok(EMPTY_CAREER)
 
   const bySerie = new Map<number, CareerEvent>()
 
-  for (const stage of result.data) {
+  for (const stage of stages) {
     if (stage.serie === null) continue
 
     const from = Date.parse(stage.begin_at ?? "")
 
     if (!Number.isFinite(from)) continue
-    if (bySerie.has(stage.serie.id)) continue
+
+    const seen = bySerie.get(stage.serie.id)
+
+    // Серия состоит из нескольких стадий; победитель известен на плей-офф.
+    if (seen !== undefined) {
+      if (seen.winnerId === null && stage.winner_id !== null) {
+        seen.winnerId = String(stage.winner_id)
+      }
+
+      continue
+    }
 
     const league = stage.league?.name ?? ""
     const serie = stage.serie.full_name ?? stage.serie.name ?? ""
@@ -101,6 +135,7 @@ export async function getPlayerCareer(playerSlug: string): Promise<ApiResult<Pla
       tier: toTier(stage.tier),
       year: stage.serie.year ?? startsAt.getUTCFullYear(),
       startsAt,
+      winnerId: stage.winner_id === null ? null : String(stage.winner_id),
     })
   }
 

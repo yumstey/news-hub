@@ -85,6 +85,7 @@ function toStreams(wire: PandaMatchWire["streams_list"]): StreamLink[] {
         platform: platformOf(url),
         url,
         language: entry.language.length > 0 ? entry.language.toUpperCase() : "—",
+        official: entry.official,
         viewers: 0,
       },
     ]

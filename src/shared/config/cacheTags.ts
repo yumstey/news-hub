@@ -37,3 +37,9 @@ export function tournamentTag(slug: string): string {
 export function rankingTag(scope: string): string {
   return `ranking:${scope}`
 }
+
+/** Каталог предметов и цены маркетплейсов. */
+export const MARKET_TAG = "market"
+
+/** Официальные обновления игры и онлайн Steam. */
+export const GAME_TAG = "game"

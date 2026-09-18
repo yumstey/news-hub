@@ -4,14 +4,15 @@ export const SITE = {
   name: "Counter-Strike 2",
   shortName: "CS2",
   description:
-    "Матчи, результаты, мировой рейтинг команд, составы и статистика игроков Counter-Strike 2.",
+    "Матчи и результаты CS2 онлайн, турнирные сетки, рейтинг команд, статистика игроков, цены скинов, шансы кейсов и обновления Counter-Strike 2.",
   locale: "ru",
 } as const
 
 export const CS2 = {
   title: "Counter-Strike 2",
   shortTitle: "CS2",
-  tagline: "Официальная площадка о киберспортивной сцене Counter-Strike 2",
+  // Не «официальная»: сайт не связан с Valve, а такое слово — риск претензии по товарному знаку.
+  tagline: "Матчи, статистика, скины и обновления Counter-Strike 2 в одном месте",
   logo: {
     url: "/cs2_logo.jpg",
     width: 360,
@@ -22,10 +23,11 @@ export const CS2 = {
 
 export const SITE_URL = PUBLIC_ENV.NEXT_PUBLIC_SITE_URL
 
+/** Сгенерированная обложка 1200×630 из app/opengraph-image.tsx. */
 export const DEFAULT_OG_IMAGE = {
-  url: "/cs2_logo.jpg",
-  width: 360,
-  height: 360,
+  url: "/opengraph-image",
+  width: 1200,
+  height: 630,
   alt: SITE.name,
 } as const
 

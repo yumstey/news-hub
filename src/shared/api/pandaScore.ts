@@ -14,7 +14,9 @@ import type { ApiResult } from "./apiResult"
 export type QueryValue = string | number | boolean | undefined
 export type PandaQuery = Record<string, QueryValue>
 
-const REQUEST_TIMEOUT_MS = 10_000
+// Некоторые коллекции PandaScore отдают по несколько мегабайт за страницу,
+// поэтому запас по времени больше, чем нужно обычному запросу.
+const REQUEST_TIMEOUT_MS = 25_000
 export const PANDA_MAX_PER_PAGE = 100
 
 function buildUrl(path: string, query: PandaQuery | undefined): string {

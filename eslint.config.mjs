@@ -58,6 +58,22 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Координаты сетки считаются из данных турнира: количество раундов и
+    // положение матчей заранее неизвестны, поэтому классов Tailwind для них
+    // не существует. Это единственное место с геометрией в разметке.
+    files: ["src/widgets/tournament-bracket/ui/BracketCanvas.tsx"],
+    rules: {
+      "react/forbid-dom-props": "off",
+    },
+  },
+  {
+    // ImageResponse (next/og) понимает только инлайновые стили: Tailwind там не работает.
+    files: ["src/shared/lib/og/**", "app/**/opengraph-image.tsx"],
+    rules: {
+      "react/forbid-dom-props": "off",
+    },
+  },
+  {
     files: ["src/features/**", "src/widgets/**"],
     rules: {
       "no-restricted-imports": [

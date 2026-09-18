@@ -8,7 +8,7 @@ import { Container, Section, Stack } from "@/shared/ui/container"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { Pagination } from "@/shared/ui/pagination"
-import { Heading, Text } from "@/shared/ui/typography"
+import { SectionHero } from "@/widgets/game-hub"
 import { NewsFeedSkeleton } from "@/widgets/news-feed"
 
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
@@ -28,14 +28,7 @@ export default function Page(props: PageProps<"/news">) {
           <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
           <Breadcrumbs items={CRUMBS} />
 
-          <Stack gap="sm">
-            <Heading level={1} size="title">
-              {NEWS_TITLE}
-            </Heading>
-            <Text size="caption" tone="muted" className="max-w-content">
-              {NEWS_DESCRIPTION} Материалы публикуются HLTV — заголовок ведёт на источник.
-            </Text>
-          </Stack>
+          <SectionHero scene="news" title={NEWS_TITLE} description={<>{NEWS_DESCRIPTION} Материалы публикуются HLTV — заголовок ведёт на источник.</>} />
 
           <Suspense fallback={<NewsFeedSkeleton count={PER_PAGE} />}>
             <NewsList searchParams={props.searchParams} />
@@ -77,7 +70,7 @@ async function NewsList({ searchParams }: Pick<PageProps<"/news">, "searchParams
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {result.data.items.map((item, index) => (
-          <NewsCard key={item.id} item={item} priority={index === 0} />
+          <NewsCard key={item.id} item={item} eager={index === 0} />
         ))}
       </div>
 

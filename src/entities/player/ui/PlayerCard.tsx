@@ -1,6 +1,7 @@
 import { ChevronRight } from "lucide-react"
-import Image from "next/image"
 import Link from "next/link"
+
+import { TeamLogo } from "@/entities/team/@x/player"
 
 import { playerHref } from "../lib/playerHref"
 import { PLAYER_ROLE_LABEL } from "../model/player"
@@ -29,12 +30,11 @@ export function PlayerCard({ player }: { player: Player }) {
       </span>
       {player.team === null ? null : (
         <span className="flex shrink-0 flex-col items-end gap-1">
-          <Image
-            src={player.team.logo.url}
-            alt={player.team.logo.alt}
-            width={24}
-            height={24}
-            className="size-6 rounded-xs object-contain"
+          <TeamLogo
+            logo={player.team.logo}
+            darkLogo={player.team.darkLogo}
+            size={24}
+            className="size-6 rounded-xs"
           />
           {player.role === null ? null : (
             <Text as="span" size="overline" tone="subtle">

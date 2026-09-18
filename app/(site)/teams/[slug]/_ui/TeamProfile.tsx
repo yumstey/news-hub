@@ -74,7 +74,7 @@ export function TeamProfile({ team, profile, players }: TeamProfileProps) {
           logo={team.logo}
           darkLogo={team.darkLogo}
           size={72}
-          priority
+          eager
           className="size-14 sm:size-16"
         />
 

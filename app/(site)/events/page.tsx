@@ -2,11 +2,13 @@ import { Suspense } from "react"
 
 import { getTournaments, TournamentCard, TournamentCardSkeleton } from "@/entities/tournament"
 import type { TournamentStatus } from "@/entities/tournament"
+import { AdSlot } from "@/shared/ui/ad-slot"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
-import { Heading, Text } from "@/shared/ui/typography"
+import { Heading } from "@/shared/ui/typography"
+import { SectionHero } from "@/widgets/game-hub"
 
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
 import { EVENTS_DESCRIPTION, EVENTS_TITLE } from "./_lib/metadata"
@@ -29,14 +31,9 @@ export default function Page() {
           <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
           <Breadcrumbs items={CRUMBS} />
 
-          <Stack gap="sm">
-            <Heading level={1} size="title">
-              {EVENTS_TITLE}
-            </Heading>
-            <Text size="caption" tone="muted" className="max-w-content">
-              {EVENTS_DESCRIPTION}
-            </Text>
-          </Stack>
+          <SectionHero scene="events" title={EVENTS_TITLE} description={EVENTS_DESCRIPTION} />
+
+          <AdSlot slot="inline" />
 
           <Suspense fallback={<TournamentCardSkeleton />}>
             <EventGroups />

@@ -28,7 +28,7 @@ function Side({
         logo={side.team.logo}
         darkLogo={side.team.darkLogo}
         size={72}
-        priority
+        eager
         className="size-14 rounded-control sm:size-18"
       />
       <div className="flex min-w-0 flex-col gap-1">

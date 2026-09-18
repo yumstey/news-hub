@@ -1,9 +1,10 @@
 import { Suspense } from "react"
 
+import { AdSlot } from "@/shared/ui/ad-slot"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
 import { JsonLd } from "@/shared/ui/json-ld"
-import { Heading, Text } from "@/shared/ui/typography"
+import { SectionHero } from "@/widgets/game-hub"
 import { MatchCenter, MatchCenterSkeleton } from "@/widgets/match-center"
 
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
@@ -21,14 +22,7 @@ export default function Page() {
           <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
           <Breadcrumbs items={CRUMBS} />
 
-          <Stack gap="sm">
-            <Heading level={1} size="title">
-              {MATCHES_TITLE}
-            </Heading>
-            <Text size="caption" tone="muted" className="max-w-content">
-              {MATCHES_DESCRIPTION}
-            </Text>
-          </Stack>
+          <SectionHero scene="matches" title={MATCHES_TITLE} description={MATCHES_DESCRIPTION} />
 
           <Suspense fallback={<MatchCenterSkeleton rows={2} />}>
             <MatchCenter
@@ -37,6 +31,8 @@ export default function Page() {
               emptyLabel="Сейчас нет матчей в прямом эфире"
             />
           </Suspense>
+
+          <AdSlot slot="inline" />
 
           <Suspense fallback={<MatchCenterSkeleton rows={8} />}>
             <MatchCenter

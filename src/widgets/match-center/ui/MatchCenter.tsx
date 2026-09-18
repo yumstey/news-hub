@@ -20,6 +20,8 @@ import { cn } from "@/shared/lib/style"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { SectionHeading } from "@/shared/ui/section-heading"
 
+import { LiveMatchCard } from "./LiveMatchCard"
+
 export type MatchCenterProps = {
   kind: MatchListKind
   limit?: number
@@ -31,6 +33,8 @@ export type MatchCenterProps = {
   playerSlug?: string
   tournamentSlug?: string
   emptyLabel?: string
+  /** "cards" — сетка с живыми кадрами трансляций; имеет смысл для kind="live". */
+  variant?: "list" | "cards"
   className?: string
 }
 
@@ -96,7 +100,7 @@ function EventHeading({ event }: { event: MatchEventGroup }) {
 }
 
 export async function MatchCenter(props: MatchCenterProps) {
-  const { kind, grouped = false, title, moreHref, moreLabel, emptyLabel, className } = props
+  const { kind, grouped = false, title, moreHref, moreLabel, emptyLabel, variant = "list", className } = props
   const result = await loadMatches(props)
 
   if (!result.ok) {
@@ -136,7 +140,15 @@ export async function MatchCenter(props: MatchCenterProps) {
         />
       ) : null}
 
-      {grouped ? (
+      {variant === "cards" ? (
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {result.data.slice(0, props.limit ?? 6).map((match) => (
+            <li key={match.id}>
+              <LiveMatchCard match={match} />
+            </li>
+          ))}
+        </ul>
+      ) : grouped ? (
         <div className="flex flex-col gap-8">
           {days.map((day) => (
             <div key={day.key} className="flex flex-col gap-4">

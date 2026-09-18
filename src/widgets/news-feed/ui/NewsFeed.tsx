@@ -61,7 +61,7 @@ export async function NewsFeed({
       {variant === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {result.data.items.map((item, index) => (
-            <NewsCard key={item.id} item={item} priority={index === 0} />
+            <NewsCard key={item.id} item={item} eager={index === 0} />
           ))}
         </div>
       ) : (

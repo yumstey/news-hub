@@ -15,5 +15,6 @@ export async function generateMetadata(props: PageProps<"/matches/[id]">) {
     title,
     `${title} на ${result.data.tournament.name}: счёт, составы и расписание серии.`,
     matchHref(result.data.id),
+    { image: "file" },
   )
 }

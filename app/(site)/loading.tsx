@@ -13,7 +13,7 @@ export default function Loading() {
         <Section spacing="md">
           <Stack gap="lg">
             <MatchCenterSkeleton rows={2} />
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
               <Stack gap="lg">
                 <MatchCenterSkeleton rows={5} />
                 <MatchCenterSkeleton rows={5} />

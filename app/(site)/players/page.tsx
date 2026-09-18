@@ -8,7 +8,7 @@ import { Container, Section, Stack } from "@/shared/ui/container"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { Pagination } from "@/shared/ui/pagination"
-import { Heading, Text } from "@/shared/ui/typography"
+import { SectionHero } from "@/widgets/game-hub"
 
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
 import { resolvePage } from "../_lib/page-param"
@@ -27,14 +27,7 @@ export default function Page(props: PageProps<"/players">) {
           <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
           <Breadcrumbs items={CRUMBS} />
 
-          <Stack gap="sm">
-            <Heading level={1} size="title">
-              {PLAYERS_TITLE}
-            </Heading>
-            <Text size="caption" tone="muted" className="max-w-content">
-              {PLAYERS_DESCRIPTION}
-            </Text>
-          </Stack>
+          <SectionHero scene="players" title={PLAYERS_TITLE} description={PLAYERS_DESCRIPTION} />
 
           <Suspense fallback={<PlayersGridSkeleton />}>
             <PlayersGrid searchParams={props.searchParams} />

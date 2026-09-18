@@ -1,6 +1,7 @@
-import { PLAYER_ROLE_LABEL, PlayerIdentity } from "@/entities/player"
+import { PLAYER_ROLE_LABEL, PlayerIdentity, preferPhoto } from "@/entities/player"
 import type { Match, MatchPlayerStat } from "@/entities/match"
-import type { PlayerRef } from "@/entities/player"
+import type { FreePhoto, PlayerRef } from "@/entities/player"
+import type { ImageAsset } from "@/shared/model"
 import { cn } from "@/shared/lib/style"
 import { SectionHeading } from "@/shared/ui/section-heading"
 import { Heading, Text } from "@/shared/ui/typography"
@@ -117,12 +118,36 @@ export function MatchStatistics({ match, className }: MatchStatisticsProps) {
   )
 }
 
+type LineupEntry = {
+  player: PlayerRef
+  photo: ImageAsset | null
+  credit: FreePhoto | null
+}
+
+/** Свежее фото с Commons вместо устаревшего снимка PandaScore, если оно новее. */
+function withPhotos(
+  players: readonly PlayerRef[],
+  photos: Readonly<Record<string, FreePhoto>>,
+): LineupEntry[] {
+  return players.map((player) => {
+    const chosen = preferPhoto(player.photo?.url ?? null, photos[player.nickname.toLowerCase()])
+
+    if (chosen?.credit == null) return { player, photo: player.photo, credit: null }
+
+    return {
+      player,
+      photo: { url: chosen.url, width: 480, height: 480, alt: player.nickname },
+      credit: chosen.credit,
+    }
+  })
+}
+
 function LineupColumn({
   teamName,
-  players,
+  entries,
 }: {
   teamName: string
-  players: readonly PlayerRef[]
+  entries: readonly LineupEntry[]
 }) {
   return (
     <div className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-5">
@@ -130,12 +155,12 @@ function LineupColumn({
         {teamName}
       </Heading>
       <ul className="flex flex-col gap-3">
-        {players.map((player) => (
+        {entries.map(({ player, photo }) => (
           <li key={player.id} className="flex items-center justify-between gap-3">
             <PlayerIdentity
               slug={player.slug}
               nickname={player.nickname}
-              photo={player.photo}
+              photo={photo}
               country={player.country}
             />
             {player.role === null ? null : (
@@ -152,28 +177,50 @@ function LineupColumn({
 
 export type MatchLineupsProps = {
   match: Match
+  /** Фото с Wikimedia Commons по никнейму в нижнем регистре. */
+  photos?: Readonly<Record<string, FreePhoto>>
   className?: string
 }
 
-export function MatchLineups({ match, className }: MatchLineupsProps) {
+export function MatchLineups({ match, photos = {}, className }: MatchLineupsProps) {
   const [first, second] = match.teams
   const [firstLineup, secondLineup] = match.lineups
 
   if (firstLineup.length === 0 && secondLineup.length === 0) return null
 
+  const firstEntries = withPhotos(firstLineup, photos)
+  const secondEntries = withPhotos(secondLineup, photos)
+  const credits = [...firstEntries, ...secondEntries].flatMap(({ player, credit }) =>
+    credit === null ? [] : [{ nickname: player.nickname, credit }],
+  )
+
   return (
     <section className={cn("flex flex-col gap-4", className)}>
       <SectionHeading title="Составы" />
       <div className="grid gap-4 md:grid-cols-2">
-        <LineupColumn
-          teamName={first.team.name}
-          players={firstLineup}
-        />
-        <LineupColumn
-          teamName={second.team.name}
-          players={secondLineup}
-        />
+        <LineupColumn teamName={first.team.name} entries={firstEntries} />
+        <LineupColumn teamName={second.team.name} entries={secondEntries} />
       </div>
+      {credits.length === 0 ? null : (
+        <p className="text-overline normal-case tracking-normal text-subtle-foreground">
+          Фото:{" "}
+          {credits.map(({ nickname, credit }, index) => (
+            <span key={nickname}>
+              {index === 0 ? null : "; "}
+              {nickname} —{" "}
+              <a
+                href={credit.source}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-border-strong underline-offset-2 hover:text-primary"
+              >
+                {credit.author}, {credit.license}
+              </a>
+            </span>
+          ))}
+          {" "}— Wikimedia Commons
+        </p>
+      )}
     </section>
   )
 }

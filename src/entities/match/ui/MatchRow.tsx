@@ -73,7 +73,7 @@ export function MatchRow({ match, showDate = false, className }: MatchRowProps) 
         className,
       )}
     >
-      <span className="flex w-14 shrink-0 flex-col items-start gap-0.5">
+      <span className="flex w-16 shrink-0 flex-col items-start gap-0.5">
         {live ? (
           <span className="inline-flex items-center gap-1.5 text-overline font-bold uppercase text-live">
             <span aria-hidden="true" className="relative flex size-1.5">
@@ -91,7 +91,7 @@ export function MatchRow({ match, showDate = false, className }: MatchRowProps) 
           </time>
         )}
         {showDate ? (
-          <span className="text-overline tabular-nums text-subtle-foreground">
+          <span className="text-overline tracking-normal tabular-nums text-subtle-foreground">
             {formatDayMonth(match.startsAt)}
           </span>
         ) : null}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 
-import { DEFAULT_OG_IMAGE, SITE, SITE_URL } from "@/shared/config"
+import { DEFAULT_OG_IMAGE, PUBLIC_ENV, SITE, SITE_URL } from "@/shared/config"
 
 import "@/app/styles/global.css"
 
@@ -22,9 +22,29 @@ export const metadata: Metadata = {
     template: `%s — ${SITE.name}`,
   },
   description: SITE.description,
+  applicationName: SITE.name,
+  keywords: [
+    "cs2",
+    "кс2",
+    "counter-strike 2",
+    "матчи cs2",
+    "результаты cs2",
+    "скины cs2",
+    "кейсы cs2",
+    "обновление cs2",
+  ],
   robots: {
     index: true,
     follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  verification: {
+    ...(PUBLIC_ENV.NEXT_PUBLIC_GOOGLE_VERIFICATION.length === 0
+      ? {}
+      : { google: PUBLIC_ENV.NEXT_PUBLIC_GOOGLE_VERIFICATION }),
+    ...(PUBLIC_ENV.NEXT_PUBLIC_YANDEX_VERIFICATION.length === 0
+      ? {}
+      : { yandex: PUBLIC_ENV.NEXT_PUBLIC_YANDEX_VERIFICATION }),
   },
   openGraph: {
     type: "website",

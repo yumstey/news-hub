@@ -52,6 +52,15 @@ export type TournamentLocation = {
   online: boolean
 }
 
+export type TournamentStage = {
+  id: string
+  name: string
+  hasBracket: boolean
+  status: TournamentStatus
+  startsAt: Date | null
+  endsAt: Date | null
+}
+
 export type Tournament = {
   id: TournamentId
   slug: Slug
@@ -66,6 +75,7 @@ export type Tournament = {
   startsAt: Date
   endsAt: Date
   teams: TeamRef[]
+  stages: TournamentStage[]
   standings: StandingRow[]
   description: string
   seo: SeoFields

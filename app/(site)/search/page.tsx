@@ -88,6 +88,7 @@ async function Results({ searchParams }: Pick<PageProps<"/search">, "searchParam
                   slug={team.slug}
                   name={team.name}
                   logo={team.logo}
+                  darkLogo={team.darkLogo}
                   country={team.country}
                 />
               </li>

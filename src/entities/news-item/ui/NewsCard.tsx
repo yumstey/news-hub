@@ -16,14 +16,14 @@ function SourceBadge({ name }: { name: string }) {
   )
 }
 
-function Cover({ item, priority }: { item: NewsItem; priority: boolean }) {
+function Cover({ item, eager }: { item: NewsItem; eager: boolean }) {
   if (item.image !== null) {
     return (
       <Image
         src={item.image.url}
         alt=""
         fill
-        priority={priority}
+        loading={eager ? "eager" : undefined}
         sizes="(min-width: 1024px) 24rem, (min-width: 640px) 50vw, 100vw"
         className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"
       />
@@ -49,11 +49,11 @@ function Cover({ item, priority }: { item: NewsItem; priority: boolean }) {
 export type NewsCardProps = {
   item: NewsItem
   variant?: "card" | "row"
-  priority?: boolean
+  eager?: boolean
   className?: string
 }
 
-export function NewsCard({ item, variant = "card", priority = false, className }: NewsCardProps) {
+export function NewsCard({ item, variant = "card", eager = false, className }: NewsCardProps) {
   const meta = (
     <span className="flex flex-wrap items-center gap-2 text-caption text-subtle-foreground">
       <time dateTime={toIsoDate(item.publishedAt)} className="tabular-nums">
@@ -76,7 +76,7 @@ export function NewsCard({ item, variant = "card", priority = false, className }
         )}
       >
         <span className="relative hidden h-14 w-24 shrink-0 overflow-hidden rounded-sm sm:block">
-          <Cover item={item} priority={false} />
+          <Cover item={item} eager={false} />
         </span>
         <div className="flex min-w-0 flex-col gap-1">
           <h3 className="line-clamp-2 text-sm font-semibold text-foreground transition-colors duration-150 group-hover:text-primary">
@@ -100,7 +100,7 @@ export function NewsCard({ item, variant = "card", priority = false, className }
       )}
     >
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
-        <Cover item={item} priority={priority} />
+        <Cover item={item} eager={eager} />
       </div>
       <div className="flex flex-1 flex-col gap-2 px-4 py-3.5">
         <h3 className="line-clamp-2 text-subheading text-foreground transition-colors duration-150 group-hover:text-primary">

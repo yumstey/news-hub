@@ -2,24 +2,43 @@ import { Trophy } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
+import { countTitles, isTitle } from "@/entities/player"
 import type { PlayerCareer as Career } from "@/entities/player"
 import { TOURNAMENT_TIER_LABEL, tournamentHref } from "@/entities/tournament"
 import { formatDate } from "@/shared/lib/date"
 import { cn } from "@/shared/lib/style"
+import { pluralize } from "@/shared/lib/text"
 import { SectionHeading } from "@/shared/ui/section-heading"
 import { Text } from "@/shared/ui/typography"
 
 const MAX_EVENTS = 16
 
-export function PlayerCareer({ career }: { career: Career }) {
+export function PlayerCareer({
+  career,
+  teamIds,
+}: {
+  career: Career
+  teamIds: readonly string[]
+}) {
   if (career.events.length === 0) return null
 
   const events = career.events.slice(0, MAX_EVENTS)
   const years = [...new Set(events.map((event) => event.year))].sort((a, b) => b - a)
+  const titles = countTitles(career.events, teamIds)
 
   return (
     <section className="flex flex-col gap-4">
-      <SectionHeading title="Турнирный путь" />
+      <SectionHeading
+        title="Турнирный путь"
+        action={
+          titles === 0 ? null : (
+            <span className="inline-flex items-center gap-1.5 rounded-xs bg-warning-soft px-2 py-1 text-overline font-bold uppercase text-warning-foreground">
+              <Trophy className="size-3.5" />
+              {pluralize(titles, ["трофей", "трофея", "трофеев"])}
+            </span>
+          )
+        }
+      />
 
       <div className="flex flex-col gap-6">
         {years.map((year) => (
@@ -37,8 +56,9 @@ export function PlayerCareer({ career }: { career: Career }) {
                     <Link
                       href={tournamentHref(event.slug)}
                       className={cn(
-                        "flex min-h-16 animate-rise-in items-center gap-3 rounded-control border border-border bg-surface px-3 py-2.5",
+                        "flex min-h-16 animate-rise-in items-center gap-3 rounded-control border bg-surface px-3 py-2.5",
                         "transition-all duration-200 hover:-translate-y-px hover:border-border-strong hover:bg-muted/60 hover:shadow-surface",
+                        isTitle(event, teamIds) ? "border-warning/50" : "border-border",
                       )}
                     >
                       {event.logo === null ? (
@@ -62,6 +82,12 @@ export function PlayerCareer({ career }: { career: Career }) {
                         <span className="truncate text-sm font-medium text-foreground">
                           {event.name}
                         </span>
+                        {isTitle(event, teamIds) ? (
+                          <span className="flex items-center gap-1 text-overline uppercase text-warning">
+                            <Trophy className="size-3" />
+                            Победа
+                          </span>
+                        ) : null}
                         <span className="flex items-center gap-2 text-caption text-subtle-foreground">
                           <span className="uppercase">{TOURNAMENT_TIER_LABEL[event.tier]}</span>
                           <span aria-hidden="true">·</span>

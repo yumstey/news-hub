@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
+import { EMPTY_MAP_POOL, getGameMaps, getTeamMapPool } from "@/entities/game-map"
 import { getTeamNews, NewsCard } from "@/entities/news-item"
-import { getTeamPlayers } from "@/entities/player"
+import { getFreePhotos, getTeamPlayers } from "@/entities/player"
 import {
   EMPTY_PROFILE,
   getTeamAchievements,
@@ -18,6 +19,7 @@ import { JsonLd } from "@/shared/ui/json-ld"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { SectionHeading } from "@/shared/ui/section-heading"
 import { Text } from "@/shared/ui/typography"
+import { TeamMapPool } from "@/widgets/map-stats"
 import { MatchCenter, MatchCenterSkeleton } from "@/widgets/match-center"
 
 import { breadcrumbsJsonLd, trail } from "../../_lib/breadcrumbs"
@@ -77,11 +79,15 @@ async function TeamView({ params }: Pick<PageProps<"/teams/[slug]">, "params">) 
         <Trophies teamSlug={team.slug} teamId={team.id} />
       </Suspense>
 
+      <Suspense fallback={<Skeleton variant="block" className="h-56 w-full" />}>
+        <MapPool team={team} />
+      </Suspense>
+
       <Suspense fallback={null}>
         <TeamNews name={team.name} shortName={team.shortName} />
       </Suspense>
 
-      <div className="grid gap-8 lg:grid-cols-2">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2">
         <Suspense fallback={<MatchCenterSkeleton rows={3} />}>
           <MatchCenter
             kind="upcoming"
@@ -106,6 +112,28 @@ async function TeamView({ params }: Pick<PageProps<"/teams/[slug]">, "params">) 
   )
 }
 
+/** Сколько последних турниров команды разбираем на карты. */
+const MAP_POOL_EVENTS = 4
+
+async function MapPool({ team }: { team: Team }) {
+  const achievements = await getTeamAchievements(team.slug, team.id)
+  const events = achievements.ok
+    ? achievements.data.items.slice(0, MAP_POOL_EVENTS).map((item) => item.name)
+    : []
+
+  const [pool, catalogue] = await Promise.all([
+    getTeamMapPool(team.slug, [team.name, team.shortName], events),
+    getGameMaps(),
+  ])
+
+  return (
+    <TeamMapPool
+      pool={pool.ok ? pool.data : EMPTY_MAP_POOL}
+      catalogue={catalogue.ok ? catalogue.data : []}
+    />
+  )
+}
+
 async function Overview({ team }: { team: Team }) {
   const [profileResult, playersResult, historyResult] = await Promise.all([
     getTeamProfile(team.name),
@@ -116,10 +144,11 @@ async function Overview({ team }: { team: Team }) {
   const profile = profileResult.ok ? profileResult.data : EMPTY_PROFILE
   const players = playersResult.ok ? playersResult.data : []
   const history = historyResult.ok ? historyResult.data : []
+  const photos = await getFreePhotos(players.map((player) => player.nickname))
 
   return (
     <>
-      <TeamRosterStrip players={players} />
+      <TeamRosterStrip players={players} photos={photos.ok ? photos.data : {}} />
       <TeamProfile team={team} profile={profile} players={players} />
       {history.length < 2 ? null : (
         <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-4 sm:p-5">

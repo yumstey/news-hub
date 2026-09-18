@@ -1,7 +1,6 @@
-import Image from "next/image"
 import Link from "next/link"
 
-import { teamHref } from "@/entities/team"
+import { teamHref, TeamLogo } from "@/entities/team"
 import { formatPrize } from "@/entities/tournament"
 import type { StandingRow } from "@/entities/tournament"
 import { SITE } from "@/shared/config"
@@ -51,14 +50,17 @@ export function PrizeDistribution({
                 accentByPosition[row.position] ?? "border-border bg-surface",
               )}
             >
-              <Image
-                src={row.team.logo.url}
-                alt=""
-                width={160}
-                height={160}
+              <span
                 aria-hidden="true"
-                className="pointer-events-none absolute -bottom-6 left-1/2 size-32 -translate-x-1/2 object-contain opacity-10"
-              />
+                className="pointer-events-none absolute -bottom-6 left-1/2 size-32 -translate-x-1/2 opacity-10"
+              >
+                <TeamLogo
+                  logo={row.team.logo}
+                  darkLogo={row.team.darkLogo}
+                  size={160}
+                  className="size-32"
+                />
+              </span>
 
               <span className="relative flex items-center gap-2">
                 <CountryTag country={row.team.country} />

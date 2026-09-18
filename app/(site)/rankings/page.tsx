@@ -3,13 +3,13 @@ import { Suspense } from "react"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
 import { JsonLd } from "@/shared/ui/json-ld"
-import { Heading, Text } from "@/shared/ui/typography"
 import {
   RankingMovers,
   RankingMoversSkeleton,
   TeamRankings,
   TeamRankingsSkeleton,
 } from "@/widgets/team-rankings"
+import { SectionHero } from "@/widgets/game-hub"
 
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
 import { RANKINGS_DESCRIPTION, RANKINGS_TITLE } from "./_lib/metadata"
@@ -26,14 +26,7 @@ export default function Page() {
           <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
           <Breadcrumbs items={CRUMBS} />
 
-          <Stack gap="sm">
-            <Heading level={1} size="title">
-              {RANKINGS_TITLE}
-            </Heading>
-            <Text size="caption" tone="muted" className="max-w-content">
-              {RANKINGS_DESCRIPTION} Рейтинг публикуется Valve и обновляется раз в месяц.
-            </Text>
-          </Stack>
+          <SectionHero scene="rankings" title={RANKINGS_TITLE} description={<>{RANKINGS_DESCRIPTION} Рейтинг публикуется Valve и обновляется раз в месяц.</>} />
 
           <Suspense fallback={<RankingMoversSkeleton />}>
             <RankingMovers />

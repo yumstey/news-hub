@@ -9,9 +9,13 @@ import { cn } from "@/shared/lib/style"
 
 export type GlobalSearchProps = {
   className?: string
+  autoFocus?: boolean
+  /** Вызывается после перехода к результатам — диалог поиска закрывает себя. */
+  onSubmitted?: () => void
+  size?: "md" | "lg"
 }
 
-export function GlobalSearch({ className }: GlobalSearchProps) {
+export function GlobalSearch({ className, autoFocus = false, onSubmitted, size = "md" }: GlobalSearchProps) {
   const router = useRouter()
   const params = useSearchParams()
   const inputId = useId()
@@ -25,6 +29,7 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
     if (query.length === 0) return
 
     router.push(`/search?q=${encodeURIComponent(query)}`)
+    onSubmitted?.()
   }
 
   return (
@@ -34,20 +39,28 @@ export function GlobalSearch({ className }: GlobalSearchProps) {
       className={cn("relative flex items-center", className)}
     >
       <label htmlFor={inputId} className="sr-only">
-        Поиск по командам, игрокам и турнирам
+        Поиск по командам, игрокам, турнирам и скинам
       </label>
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute left-3 size-4 text-subtle-foreground"
+        className={cn(
+          "pointer-events-none absolute left-3 text-subtle-foreground",
+          size === "lg" ? "size-5" : "size-4",
+        )}
       />
       <input
         id={inputId}
         type="search"
         value={value}
         onChange={(event) => setValue(event.target.value)}
-        placeholder="Команды, игроки, турниры"
+        placeholder="Команды, игроки, турниры, скины"
         autoComplete="off"
-        className="h-10 w-full rounded-control border border-border bg-surface pl-9 pr-9 text-sm text-foreground placeholder:text-subtle-foreground focus-visible:border-border-strong"
+        autoFocus={autoFocus}
+        enterKeyHint="search"
+        className={cn(
+          "w-full rounded-control border border-border bg-surface pr-9 text-foreground placeholder:text-subtle-foreground focus-visible:border-border-strong",
+          size === "lg" ? "h-12 pl-11 text-base" : "h-10 pl-9 text-sm",
+        )}
       />
       {value.length > 0 ? (
         <button

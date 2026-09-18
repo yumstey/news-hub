@@ -7,6 +7,7 @@ import { tournamentIdSchema } from "../model/tournament"
 import type {
   StandingRow,
   Tournament,
+  TournamentStage,
   TournamentStatus,
   TournamentTier,
 } from "../model/tournament"
@@ -170,6 +171,32 @@ export function toTournament(
     startsAt,
     endsAt,
     teams: [...teams.values()],
+    stages: stages
+      .map((stage): TournamentStage => {
+        const from = boundary([stage.begin_at], "min")
+        const to = boundary([stage.end_at ?? stage.begin_at], "max")
+
+        return {
+          id: String(stage.id),
+          name: stage.name,
+          hasBracket: stage.has_bracket,
+          status: from === null || to === null ? "upcoming" : statusOf(from, to, now),
+          startsAt: from,
+          endsAt: to,
+        }
+      })
+      .sort((left, right) => {
+        const order: Record<TournamentStatus, number> = {
+          ongoing: 0,
+          upcoming: 1,
+          finished: 2,
+        }
+        const byStatus = order[left.status] - order[right.status]
+
+        if (byStatus !== 0) return byStatus
+
+        return (left.startsAt?.getTime() ?? 0) - (right.startsAt?.getTime() ?? 0)
+      }),
     standings: [...standings],
     description: `${name}: ${stageNames.length > 0 ? stageNames : "расписание"}. ${teams.size} команд, ${offline ? "LAN" : "онлайн"}.`,
     seo: {

@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
+import { EMPTY_MATCH_MAPS, getGameMaps, getMatchMaps } from "@/entities/game-map"
 import { buildMatchJsonLd, getMatchById } from "@/entities/match"
+import type { Match } from "@/entities/match"
+import { getFreePhotos } from "@/entities/player"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
 import { JsonLd } from "@/shared/ui/json-ld"
@@ -55,8 +58,14 @@ async function MatchView({ params }: Pick<PageProps<"/matches/[id]">, "params">)
       </Heading>
 
       <MatchScoreboard match={match} />
-      <MatchMaps match={match} />
-      <MatchLineups match={match} />
+
+      <Suspense fallback={<Skeleton variant="block" className="h-64 w-full" />}>
+        <Maps match={match} />
+      </Suspense>
+
+      <Suspense fallback={<MatchLineups match={match} />}>
+        <Lineups match={match} />
+      </Suspense>
 
       {match.statistics === null ? (
         <Text size="caption" tone="subtle">
@@ -67,6 +76,40 @@ async function MatchView({ params }: Pick<PageProps<"/matches/[id]">, "params">)
       )}
     </>
   )
+}
+
+async function Maps({ match }: { match: Match }) {
+  const [first, second] = match.teams
+  const [detail, catalogue] = await Promise.all([
+    getMatchMaps(
+      match.id,
+      // Двоеточия и решётки в названии турнира мешают поиску по вики.
+      match.tournament.name.replace(/[:#]/g, " "),
+      [first.team.name, first.team.shortName],
+      [second.team.name, second.team.shortName],
+      match.startsAt.toISOString(),
+    ),
+    getGameMaps(),
+  ])
+
+  return (
+    <MatchMaps
+      match={match}
+      detail={detail.ok ? detail.data : EMPTY_MATCH_MAPS}
+      catalogue={catalogue.ok ? catalogue.data : []}
+    />
+  )
+}
+
+/** Составы сразу рендерятся с фото PandaScore; более свежие снимки с Commons догружаются. */
+async function Lineups({ match }: { match: Match }) {
+  const nicknames = match.lineups.flat().map((player) => player.nickname)
+
+  if (nicknames.length === 0) return null
+
+  const photos = await getFreePhotos(nicknames)
+
+  return <MatchLineups match={match} photos={photos.ok ? photos.data : {}} />
 }
 
 function MatchSkeleton() {

@@ -91,6 +91,7 @@ export async function TeamRankings({
                     slug={row.team.slug}
                     name={row.team.name}
                     logo={row.team.logo}
+                    darkLogo={row.team.darkLogo}
                     country={row.team.country}
                     size="sm"
                   />

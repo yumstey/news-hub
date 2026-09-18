@@ -8,12 +8,24 @@ export type PaginationProps = {
   page: number
   pageCount: number
   basePath: Route
+  /** Параметры фильтров, которые должны пережить переход между страницами. */
+  query?: Readonly<Record<string, string>>
   label?: string
   className?: string
 }
 
-function pageHref(basePath: string, page: number): Route {
-  return (page <= 1 ? basePath : `${basePath}?page=${page}`) as Route
+function pageHref(
+  basePath: string,
+  page: number,
+  query: Readonly<Record<string, string>>,
+): Route {
+  const params = new URLSearchParams(query)
+
+  if (page > 1) params.set("page", String(page))
+
+  const search = params.toString()
+
+  return (search.length === 0 ? basePath : `${basePath}?${search}`) as Route
 }
 
 function windowOf(page: number, pageCount: number): number[] {
@@ -37,6 +49,7 @@ export function Pagination({
   page,
   pageCount,
   basePath,
+  query = {},
   label = "Постраничная навигация",
   className,
 }: PaginationProps) {
@@ -48,7 +61,7 @@ export function Pagination({
   return (
     <nav aria-label={label} className={cn("flex items-center justify-between gap-3", className)}>
       {current > 1 ? (
-        <Link href={pageHref(basePath, current - 1)} rel="prev" className={stepClass}>
+        <Link href={pageHref(basePath, current - 1, query)} rel="prev" className={stepClass}>
           <ChevronLeft aria-hidden="true" className="size-4" />
           <span className="hidden sm:inline">Назад</span>
         </Link>
@@ -67,7 +80,7 @@ export function Pagination({
         {pages.map((entry) => (
           <li key={entry}>
             <Link
-              href={pageHref(basePath, entry)}
+              href={pageHref(basePath, entry, query)}
               aria-current={entry === current ? "page" : undefined}
               className={cn(
                 "inline-flex h-11 min-w-11 items-center justify-center rounded-control px-3 text-sm font-medium tabular-nums transition-colors duration-150",
@@ -83,7 +96,7 @@ export function Pagination({
       </ul>
 
       {current < pageCount ? (
-        <Link href={pageHref(basePath, current + 1)} rel="next" className={stepClass}>
+        <Link href={pageHref(basePath, current + 1, query)} rel="next" className={stepClass}>
           <span className="hidden sm:inline">Вперёд</span>
           <ChevronRight aria-hidden="true" className="size-4" />
         </Link>

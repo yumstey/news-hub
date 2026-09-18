@@ -2,42 +2,63 @@ import Image from "next/image"
 import Link from "next/link"
 import { Suspense } from "react"
 
-import { GlobalSearch } from "@/features/global-search"
 import { CS2, ROUTES, SITE } from "@/shared/config"
 import { Container } from "@/shared/ui/container"
 
-import { SectionNav } from "./SectionNav"
+import { DesktopNav, DesktopNavView } from "./DesktopNav"
+import type { NavBadges } from "./DesktopNav"
+import { HeaderSearch } from "./HeaderSearch"
+import { LiveBadge } from "./LiveBadge"
+import { MobileMenu, MobileMenuView } from "./MobileMenu"
 
-export function SiteHeader() {
+function Brand() {
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur-sm">
-      <Container className="flex h-14 items-center gap-3 sm:h-header sm:gap-4">
-        <Link href={ROUTES.home} className="flex shrink-0 items-center gap-2.5 rounded-control">
-          <Image
-            src={CS2.logo.url}
-            alt=""
-            width={32}
-            height={32}
-            priority
-            aria-hidden="true"
-            className="size-8 shrink-0 rounded-sm object-cover"
-          />
-          <span className="hidden min-w-0 flex-col leading-tight sm:flex">
-            <span className="truncate text-sm font-bold tracking-tight text-foreground">
-              {SITE.name}
-            </span>
-            <span className="hidden truncate text-overline uppercase text-subtle-foreground lg:block">
-              {CS2.tagline}
-            </span>
-          </span>
-        </Link>
+    <Link href={ROUTES.home} className="flex shrink-0 items-center gap-2 rounded-control" aria-label={`${SITE.name} — на главную`}>
+      <Image
+        src={CS2.logo.url}
+        alt=""
+        width={28}
+        height={28}
+        loading="eager"
+        className="size-7 shrink-0 rounded-sm object-cover"
+      />
+      <span className="text-base font-bold tracking-tight text-foreground">{SITE.shortName}</span>
+    </Link>
+  )
+}
 
-        <Suspense fallback={null}>
-          <GlobalSearch className="ml-auto w-full max-w-56 sm:max-w-72 lg:max-w-80" />
+/**
+ * Шапка в одну строку высотой --spacing-header на любой ширине: меню с
+ * приоритетами (часть пунктов прячется в «Ещё» на средних экранах), поиск —
+ * по кнопке, на телефоне — боковая панель.
+ */
+export function SiteHeader() {
+  const badges: NavBadges = {
+    matches: (
+      <Suspense fallback={null}>
+        <LiveBadge />
+      </Suspense>
+    ),
+  }
+
+  return (
+    <header className="sticky top-0 z-50 h-header border-b border-border bg-background/85 backdrop-blur-md">
+      <Container className="flex h-full items-center gap-3 lg:gap-5">
+        <Brand />
+
+        <Suspense fallback={<DesktopNavView pathname={null} badges={badges} />}>
+          <DesktopNav badges={badges} />
         </Suspense>
-      </Container>
 
-      <SectionNav />
+        <div className="ml-auto flex items-center gap-2">
+          <Suspense fallback={null}>
+            <HeaderSearch />
+          </Suspense>
+          <Suspense fallback={<MobileMenuView pathname={null} badges={badges} brand={<Brand />} />}>
+            <MobileMenu badges={badges} brand={<Brand />} />
+          </Suspense>
+        </div>
+      </Container>
     </header>
   )
 }

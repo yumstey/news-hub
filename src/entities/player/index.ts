@@ -27,3 +27,23 @@ export { searchPlayers } from "./api/searchPlayers"
 export { PlayerCard, PlayersGridSkeleton } from "./ui/PlayerCard"
 export { getPlayerCareer, EMPTY_CAREER } from "./api/getPlayerCareer"
 export type { PlayerCareer, CareerEvent } from "./api/getPlayerCareer"
+export { isTitle, countTitles } from "./lib/careerTitles"
+export { getPlayerRecord, EMPTY_RECORD } from "./api/getPlayerRecord"
+export type {
+  PlayerRecord,
+  PlayerOutcome,
+  PlayerSeason,
+  PlayerRival,
+  PlayerStreak,
+} from "./api/getPlayerRecord"
+export { getPlayerProfile, EMPTY_PLAYER_PROFILE } from "./api/liquipediaPlayer"
+export type {
+  PlayerProfile,
+  PlayerSpell,
+  PlayerAward,
+  PlayerRanking,
+  PlayerMvp,
+  PlayerLink,
+} from "./api/liquipediaPlayer"
+export { getFreePhotos, preferPhoto } from "./api/freePhotos"
+export type { FreePhoto } from "./api/freePhotos"

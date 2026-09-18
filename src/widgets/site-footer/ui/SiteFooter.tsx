@@ -8,9 +8,12 @@ import { Heading, Text } from "@/shared/ui/typography"
 
 const DATA_SOURCES = [
   { label: "PandaScore", url: "https://pandascore.co" },
+  { label: "Liquipedia", url: "https://liquipedia.net/counterstrike" },
   { label: "Valve Regional Standings", url: "https://github.com/ValveSoftware/counter-strike_regional_standings" },
+  { label: "Steam", url: "https://store.steampowered.com/app/730" },
+  { label: "Skinport", url: "https://skinport.com" },
+  { label: "CSGO-API", url: "https://github.com/ByMykel/CSGO-API" },
   { label: "HLTV", url: "https://www.hltv.org" },
-  { label: "Counter-Strike 2", url: "https://www.counter-strike.net" },
 ] as const
 
 export function SiteFooter() {
@@ -79,16 +82,26 @@ export function SiteFooter() {
             ))}
           </ul>
           <Text size="caption" tone="subtle">
-            Расписание, результаты и профили — PandaScore. Мировой рейтинг — официальные
-            региональные таблицы Valve. Новости — HLTV.
+            Расписание, результаты и профили — PandaScore. Карты матчей, награды и составы — Liquipedia
+            (CC BY-SA 3.0). Мировой рейтинг — региональные таблицы Valve. Цены скинов — Skinport,
+            предметы — CSGO-API, обновления и онлайн — Steam. Новости — HLTV.
           </Text>
         </Stack>
 
         <Separator className="my-8" />
 
-        <Text size="caption" tone="subtle">
-          &copy; {SITE.name}. Все права защищены.
-        </Text>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Text size="caption" tone="subtle" className="max-w-content">
+            Сайт не связан с Valve Corporation. Counter-Strike и логотипы игры — товарные знаки Valve.
+            Данные предоставляются «как есть» и могут отличаться от официальных.
+          </Text>
+          <Link
+            href={ROUTES.advertise}
+            className="shrink-0 text-sm font-medium text-muted-foreground transition-colors duration-150 hover:text-foreground"
+          >
+            Реклама на сайте
+          </Link>
+        </div>
       </Container>
     </footer>
   )
