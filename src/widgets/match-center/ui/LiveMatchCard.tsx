@@ -8,13 +8,15 @@ import { cn } from "@/shared/lib/style"
 
 export type LiveMatchCardProps = {
   match: Match
+  /** Кадр из игры на случай, если у матча нет трансляции на Twitch. */
+  backdrop?: string | null
 }
 
 /**
  * Карточка матча в эфире с живым кадром трансляции — как телегид. Превью Twitch
  * не пропускаем через оптимизатор: кадр меняется каждые пять минут.
  */
-export function LiveMatchCard({ match }: LiveMatchCardProps) {
+export function LiveMatchCard({ match, backdrop = null }: LiveMatchCardProps) {
   const [first, second] = match.teams
   const stream = pickStream(match.streams)
   const preview = stream === null ? null : twitchPreview(stream.url)
@@ -28,9 +30,22 @@ export function LiveMatchCard({ match }: LiveMatchCardProps) {
       <span className="relative block aspect-video w-full overflow-hidden bg-muted">
         {preview === null ? (
           <span className="absolute inset-0 flex items-center justify-center gap-6 bg-linear-to-br from-primary-soft via-elevated to-live-soft">
-            <TeamLogo logo={first.team.logo} darkLogo={first.team.darkLogo} size={64} className="size-16" />
-            <span className="text-heading font-bold text-subtle-foreground">vs</span>
-            <TeamLogo logo={second.team.logo} darkLogo={second.team.darkLogo} size={64} className="size-16" />
+            {backdrop === null ? null : (
+              <>
+                <Image
+                  src={backdrop}
+                  alt=""
+                  fill
+                  quality={50}
+                  sizes="(min-width: 1024px) 26rem, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover opacity-60 transition-transform duration-300 group-hover:scale-[1.03]"
+                />
+                <span aria-hidden="true" className="absolute inset-0 bg-linear-to-br from-black/70 via-black/40 to-live/30" />
+              </>
+            )}
+            <TeamLogo logo={first.team.logo} darkLogo={first.team.darkLogo} size={64} className="relative size-16 drop-shadow-lg" />
+            <span className="relative text-heading font-bold text-white/70">vs</span>
+            <TeamLogo logo={second.team.logo} darkLogo={second.team.darkLogo} size={64} className="relative size-16 drop-shadow-lg" />
           </span>
         ) : (
           <Image

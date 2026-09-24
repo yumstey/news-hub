@@ -32,10 +32,22 @@ async function byExactNames(names: readonly string[]): Promise<Map<string, TeamR
   return found
 }
 
+/**
+ * Valve пишет короткие названия («FUT», «G2»), PandaScore — полные
+ * («FUT Esports»). Отбрасываем организационный суффикс, чтобы не терять команду.
+ */
+const ORG_SUFFIX = /(esports|esport|gaming|club)$/
+
+function withoutOrgSuffix(value: string): string {
+  return normaliseName(value).replace(ORG_SUFFIX, "")
+}
+
 async function bySearch(name: string): Promise<TeamRef | null> {
+  // Поиск возвращает и «FUT Academy», и «FUT Turkuaz» — нужная команда может
+  // оказаться далеко не первой, поэтому берём широкую выдачу.
   const result = await pandaList(`${CS2_PATH}/teams`, pandaTeamRefSchema, {
     "search[name]": name,
-    "page[size]": 10,
+    "page[size]": 50,
   })
 
   if (!result.ok) return null
@@ -43,7 +55,11 @@ async function bySearch(name: string): Promise<TeamRef | null> {
   const target = normaliseName(name)
   const exact = result.data.find((wire) => normaliseName(wire.name) === target)
 
-  return exact === undefined ? null : toTeamRef(exact)
+  if (exact !== undefined) return toTeamRef(exact)
+
+  const relaxed = result.data.find((wire) => withoutOrgSuffix(wire.name) === target)
+
+  return relaxed === undefined ? null : toTeamRef(relaxed)
 }
 
 export async function resolveTeamRefs(

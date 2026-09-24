@@ -1,6 +1,6 @@
 import { cacheLife } from "next/cache"
 
-export type CacheProfile = "reference" | "prices" | "feed" | "schedule"
+export type CacheProfile = "reference" | "prices" | "feed" | "schedule" | "article"
 
 /**
  * Срок кэша по исходу: удачный ответ живёт весь профиль, сбой источника —
@@ -27,6 +27,9 @@ export function cacheFor(profile: CacheProfile, healthy: boolean): void {
       return
     case "schedule":
       cacheLife("schedule")
+      return
+    case "article":
+      cacheLife("article")
       return
   }
 }

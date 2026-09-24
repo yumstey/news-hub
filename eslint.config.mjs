@@ -67,6 +67,14 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // Ширина полос в разборе очков Valve — доля от 0 до 1 из данных: под каждое
+    // значение класса Tailwind не существует.
+    files: ["src/widgets/team-rankings/ui/RankingBoard.tsx"],
+    rules: {
+      "react/forbid-dom-props": "off",
+    },
+  },
+  {
     // ImageResponse (next/og) понимает только инлайновые стили: Tailwind там не работает.
     files: ["src/shared/lib/og/**", "app/**/opengraph-image.tsx"],
     rules: {

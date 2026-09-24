@@ -1,8 +1,9 @@
-import { cacheLife, cacheTag } from "next/cache"
+import { cacheTag } from "next/cache"
 
 import { ok, pandaList } from "@/shared/api"
 import type { ApiResult } from "@/shared/api"
 import { CS2_MODULE, feedTag } from "@/shared/config"
+import { cacheFor } from "@/shared/lib/cache"
 
 import type { Tournament } from "../model/tournament"
 import {
@@ -16,19 +17,19 @@ import type { PandaStageWire } from "./pandaTournamentSchema"
 
 const TIER_RANK: Record<Tournament["tier"], number> = { s: 0, a: 1, b: 2, c: 3 }
 
-async function stages(scope: "running" | "upcoming" | "past"): Promise<PandaStageWire[]> {
+/** Стадии турниров; null — сбой запроса, чтобы не закэшировать пустоту надолго. */
+async function stages(scope: "running" | "upcoming" | "past"): Promise<PandaStageWire[] | null> {
   const result = await pandaList(`${CS2_PATH}/tournaments/${scope}`, pandaStageSchema, {
     "filter[tier]": RELEVANT_TIERS,
     "page[size]": SCOPE_PAGE_SIZE,
     sort: scope === "past" ? "-begin_at" : "begin_at",
   })
 
-  return result.ok ? result.data : []
+  return result.ok ? result.data : null
 }
 
 export async function getTournaments(): Promise<ApiResult<Tournament[]>> {
   "use cache"
-  cacheLife("reference")
   cacheTag(feedTag(CS2_MODULE))
 
   const [running, upcoming, past] = await Promise.all([
@@ -37,8 +38,10 @@ export async function getTournaments(): Promise<ApiResult<Tournament[]>> {
     stages("past"),
   ])
 
+  cacheFor("reference", running !== null && upcoming !== null && past !== null)
+
   const now = new Date()
-  const tournaments = groupBySerie([...running, ...upcoming, ...past]).flatMap((group) => {
+  const tournaments = groupBySerie([...(running ?? []), ...(upcoming ?? []), ...(past ?? [])]).flatMap((group) => {
     const tournament = toTournament(group, now)
 
     return tournament === null ? [] : [tournament]

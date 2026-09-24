@@ -5,7 +5,7 @@ import type { ApiResult } from "@/shared/api"
 import { teamTag } from "@/shared/config"
 
 import type { Match } from "../model/match"
-import { pageSize } from "./pandaEndpoints"
+import { pageSizeWithSlack } from "./pandaEndpoints"
 import { toMatchList } from "./pandaMatchMapper"
 import { pandaMatchSchema } from "./pandaMatchSchema"
 
@@ -22,15 +22,15 @@ export async function getTeamMatches(
     `/teams/${encodeURIComponent(teamSlug)}/matches`,
     pandaMatchSchema,
     {
-      "page[size]": pageSize(limit),
+      "page[size]": pageSizeWithSlack(limit),
       "filter[status]": kind === "results" ? "finished" : "not_started,running",
-      sort: kind === "results" ? "-begin_at" : "begin_at",
+      sort: kind === "results" ? "-scheduled_at" : "scheduled_at",
     },
   )
 
   if (!result.ok) return fail(result.error)
 
-  const matches = toMatchList(result.data)
+  const matches = toMatchList(result.data, kind === "results" ? "desc" : "asc")
 
   return ok(limit === undefined ? matches : matches.slice(0, limit))
 }

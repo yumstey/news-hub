@@ -5,7 +5,7 @@ import type { ApiResult } from "@/shared/api"
 import { playerTag } from "@/shared/config"
 
 import type { Match } from "../model/match"
-import { pageSize } from "./pandaEndpoints"
+import { pageSizeWithSlack } from "./pandaEndpoints"
 import { toMatchList } from "./pandaMatchMapper"
 import { pandaMatchSchema } from "./pandaMatchSchema"
 
@@ -21,15 +21,15 @@ export async function getPlayerMatches(
     `/players/${encodeURIComponent(playerSlug)}/matches`,
     pandaMatchSchema,
     {
-      "page[size]": pageSize(limit),
+      "page[size]": pageSizeWithSlack(limit),
       "filter[status]": "finished",
-      sort: "-begin_at",
+      sort: "-scheduled_at",
     },
   )
 
   if (!result.ok) return fail(result.error)
 
-  const matches = toMatchList(result.data)
+  const matches = toMatchList(result.data, "desc")
 
   return ok(limit === undefined ? matches : matches.slice(0, limit))
 }

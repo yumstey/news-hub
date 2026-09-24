@@ -16,8 +16,22 @@ export type TeamLink = {
   url: string
 }
 
+/** Игрок основного состава по данным вики: там состав правят в день трансфера. */
+export type RosterMember = {
+  nickname: string
+  realName: string | null
+  countryCode: string | null
+  /** Coach, Analyst и подобное; у игроков роли нет. */
+  role: string | null
+  igl: boolean
+  joinedAt: string | null
+}
+
 export type TeamProfile = {
   page: string | null
+  roster: RosterMember[]
+  /** Скамейка: команда их держит, но они не играют. */
+  inactive: RosterMember[]
   foundedYear: number | null
   region: string | null
   igl: TeamPerson | null
@@ -29,6 +43,8 @@ export type TeamProfile = {
 
 export const EMPTY_PROFILE: TeamProfile = {
   page: null,
+  roster: [],
+  inactive: [],
   foundedYear: null,
   region: null,
   igl: null,
@@ -134,15 +150,85 @@ function foundedYear(box: string): number | null {
   return match?.[1] === undefined ? null : Number(match[1])
 }
 
+/** Содержимое шаблона с балансом скобок: внутри состава лежат вложенные шаблоны. */
+function templateBody(content: string, opening: RegExp): string | null {
+  const start = content.search(opening)
+
+  if (start < 0) return null
+
+  let depth = 0
+
+  for (let cursor = start; cursor < content.length - 1; cursor += 1) {
+    if (content[cursor] === "{" && content[cursor + 1] === "{") {
+      depth += 1
+      cursor += 1
+      continue
+    }
+
+    if (content[cursor] === "}" && content[cursor + 1] === "}") {
+      depth -= 1
+      cursor += 1
+
+      if (depth === 0) return content.slice(start, cursor + 1)
+    }
+  }
+
+  return null
+}
+
+function personEntries(block: string): RosterMember[] {
+  const members: RosterMember[] = []
+
+  for (const match of block.matchAll(/\{\{Person\|([\s\S]*?)\}\}(?=\s*(?:\||\}\}))/g)) {
+    const body = match[1] ?? ""
+    const value = (name: string): string | null => {
+      const found = new RegExp(`\\|?${name}=([^|}\\n]*)`, "i").exec(body)?.[1]?.trim()
+
+      return found === undefined || found.length === 0 ? null : found
+    }
+    const nickname = value("id")
+
+    if (nickname === null) continue
+
+    // Дата прихода бывает завёрнута в {{abbr|…}} с пояснением про паузу.
+    const joindate = /joindate=(?:\{\{abbr\|)?(\d{4}-\d{2}-\d{2})/i.exec(body)?.[1] ?? null
+
+    members.push({
+      nickname,
+      realName: value("name"),
+      countryCode: value("flag")?.toLowerCase() ?? null,
+      role: value("role"),
+      igl: /\|igl=y/i.test(body),
+      joinedAt: joindate,
+    })
+  }
+
+  return members
+}
+
+/** Состав со страницы команды: активные и на скамейке. */
+function squads(content: string): { roster: RosterMember[]; inactive: RosterMember[] } {
+  const active = templateBody(content, /\{\{Squad\|status=active/i)
+  const bench = templateBody(content, /\{\{Squad\|status=inactive/i)
+
+  return {
+    roster: active === null ? [] : personEntries(active),
+    inactive: bench === null ? [] : personEntries(bench),
+  }
+}
+
 export function parseTeamProfile(content: string, page: string): TeamProfile {
   const box = infobox(content)
 
   if (box === null) return EMPTY_PROFILE
 
   const coaches = people(field(box, "coaches") ?? field(box, "coach"))
+  const squad = squads(content)
 
   return {
     page,
+    roster: squad.roster,
+    inactive: squad.inactive,
     foundedYear: foundedYear(box),
     region: field(box, "region"),
     igl: people(field(box, "igl"))[0] ?? null,

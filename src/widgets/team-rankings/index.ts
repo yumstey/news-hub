@@ -1,3 +1,7 @@
 export { TeamRankings, TeamRankingsSkeleton } from "./ui/TeamRankings"
 export type { TeamRankingsProps } from "./ui/TeamRankings"
 export { RankingMovers, RankingMoversSkeleton } from "./ui/RankingMovers"
+export { RankingSection, RankingSectionSkeleton } from "./ui/RankingSection"
+export type { RankingSectionProps } from "./ui/RankingSection"
+export { RankingBoard } from "./ui/RankingBoard"
+export type { RankingBoardProps } from "./ui/RankingBoard"

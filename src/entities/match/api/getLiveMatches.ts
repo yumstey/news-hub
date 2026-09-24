@@ -18,5 +18,5 @@ export async function getLiveMatches(): Promise<ApiResult<Match[]>> {
 
   if (!result.ok) return fail(result.error)
 
-  return ok(toMatchList(result.data))
+  return ok(toMatchList(result.data, "asc"))
 }

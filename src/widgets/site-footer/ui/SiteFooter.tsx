@@ -13,7 +13,9 @@ const DATA_SOURCES = [
   { label: "Steam", url: "https://store.steampowered.com/app/730" },
   { label: "Skinport", url: "https://skinport.com" },
   { label: "CSGO-API", url: "https://github.com/ByMykel/CSGO-API" },
-  { label: "HLTV", url: "https://www.hltv.org" },
+  { label: "bo3.gg", url: "https://bo3.gg" },
+  { label: "Cybersport.ru", url: "https://www.cybersport.ru/tags/cs2" },
+  { label: "YouTube", url: "https://www.youtube.com" },
 ] as const
 
 export function SiteFooter() {
@@ -82,9 +84,10 @@ export function SiteFooter() {
             ))}
           </ul>
           <Text size="caption" tone="subtle">
-            Расписание, результаты и профили — PandaScore. Карты матчей, награды и составы — Liquipedia
-            (CC BY-SA 3.0). Мировой рейтинг — региональные таблицы Valve. Цены скинов — Skinport,
-            предметы — CSGO-API, обновления и онлайн — Steam. Новости — HLTV.
+            Расписание, результаты и профили — PandaScore. Составы, турниры и карты матчей —
+            Liquipedia (CC BY-SA 3.0). Мировой рейтинг — региональные таблицы Valve. Карьерная
+            статистика игроков — bo3.gg. Цены скинов — Skinport, предметы — CSGO-API, обновления и
+            онлайн — Steam. Новости — открытые RSS-ленты изданий, видео — официальные каналы YouTube.
           </Text>
         </Stack>
 

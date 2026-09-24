@@ -3,7 +3,8 @@ import { Suspense } from "react"
 import type { ReactNode } from "react"
 
 import { getGameInfo } from "@/entities/game-update"
-import { cn } from "@/shared/lib/style"
+
+import { HeroFrame } from "./HeroFrame"
 
 /**
  * За каждым разделом закреплён свой скриншот CS2 из Steam: разделы узнаются
@@ -22,6 +23,7 @@ const SCENES = {
   cases: 9,
   updates: 10,
   game: 11,
+  videos: 12,
 } as const
 
 export type HeroScene = keyof typeof SCENES
@@ -39,8 +41,11 @@ async function Backdrop({ scene }: { scene: HeroScene }) {
       alt=""
       fill
       quality={50}
-      sizes="(min-width: 1280px) 80rem, 100vw"
-      className="-z-20 object-cover object-center opacity-55"
+      sizes="100vw"
+      loading="eager"
+      fetchPriority="high"
+      // На светлой теме кадр выцветает под белым градиентом — держим плотнее.
+      className="-z-20 object-cover object-center opacity-90 dark:opacity-65"
     />
   )
 }
@@ -49,44 +54,49 @@ export type SectionHeroProps = {
   scene: HeroScene
   title: ReactNode
   description?: ReactNode
-  /** Справа (на телефоне — снизу): счётчики, ссылки, онлайн. */
+  /** Хлебные крошки над заголовком. */
+  crumbs?: ReactNode
+  /** Счётчики раздела: онлайн, число матчей, объём базы. */
+  stats?: ReactNode
+  /** Ссылки и кнопки под описанием. */
+  actions?: ReactNode
+  /** Карточка справа: матч дня, топ рейтинга и подобное. */
   aside?: ReactNode
-  className?: string
 }
 
 /**
- * Заголовок раздела на атмосферном скриншоте игры. Текст рендерится сразу,
+ * Баннер раздела на атмосферном скриншоте игры. Текст рендерится сразу,
  * картинка догружается отдельно и никогда не задерживает H1.
  */
-export function SectionHero({ scene, title, description, aside, className }: SectionHeroProps) {
+export function SectionHero({
+  scene,
+  title,
+  description,
+  crumbs,
+  stats,
+  actions,
+  aside,
+}: SectionHeroProps) {
   return (
-    <section
-      className={cn(
-        "relative isolate overflow-hidden rounded-surface border border-border bg-elevated",
-        className,
-      )}
+    <HeroFrame
+      backdrop={
+        <Suspense fallback={null}>
+          <Backdrop scene={scene} />
+        </Suspense>
+      }
+      aside={aside}
     >
-      <Suspense fallback={null}>
-        <Backdrop scene={scene} />
-      </Suspense>
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10 bg-linear-to-r from-elevated via-elevated/90 to-elevated/35"
-      />
-      <div
-        aria-hidden="true"
-        className="absolute inset-x-0 top-0 -z-10 h-px bg-linear-to-r from-primary/60 via-primary/20 to-transparent"
-      />
+      {crumbs}
 
-      <div className="flex flex-col gap-4 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
-        <div className="flex max-w-content flex-col gap-2">
-          <h1 className="text-title font-bold tracking-tight text-foreground">{title}</h1>
-          {description === undefined ? null : (
-            <p className="text-caption text-muted-foreground sm:text-body">{description}</p>
-          )}
-        </div>
-        {aside === undefined ? null : <div className="flex shrink-0 flex-wrap gap-2">{aside}</div>}
+      <div className="flex max-w-3xl flex-col gap-4">
+        <h1 className="text-title font-bold tracking-tight text-foreground sm:text-display">{title}</h1>
+        {description === undefined ? null : (
+          <p className="max-w-content text-body text-muted-foreground sm:text-lead">{description}</p>
+        )}
       </div>
-    </section>
+
+      {stats === undefined ? null : <div className="flex flex-wrap gap-2">{stats}</div>}
+      {actions}
+    </HeroFrame>
   )
 }

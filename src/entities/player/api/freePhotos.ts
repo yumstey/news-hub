@@ -6,6 +6,8 @@ import type { ApiResult } from "@/shared/api"
 import { playerTag } from "@/shared/config"
 import { cacheFor } from "@/shared/lib/cache"
 
+import { searchCommonsPhoto } from "./commonsSearch"
+
 const SPARQL = "https://query.wikidata.org/sparql?format=json&query="
 const COMMONS = "https://commons.wikimedia.org/w/api.php"
 const THUMB_WIDTH = 480
@@ -92,10 +94,10 @@ export async function getFreePhotos(nicknames: readonly string[]): Promise<ApiRe
   const found = await fetchJson(`${SPARQL}${encodeURIComponent(query)}`, sparqlSchema)
 
   if (!found.ok || found.data.results.bindings.length === 0) {
-    // Нет фото в Wikidata — это тоже ответ, а вот сбой запроса перепроверим скоро.
+    // Нет фото в Wikidata — остаётся поиск по самому Commons.
     cacheFor("reference", found.ok)
 
-    return ok({})
+    return ok(await withCommonsSearch(unique, {}))
   }
 
   const byFile = new Map<string, string>()
@@ -114,7 +116,7 @@ export async function getFreePhotos(nicknames: readonly string[]): Promise<ApiRe
 
   cacheFor("reference", info.ok)
 
-  if (!info.ok) return ok({})
+  if (!info.ok) return ok(await withCommonsSearch(unique, {}))
 
   const photos: Record<string, FreePhoto> = {}
 
@@ -138,7 +140,37 @@ export async function getFreePhotos(nicknames: readonly string[]): Promise<ApiRe
     }
   }
 
-  return ok(photos)
+  return ok(await withCommonsSearch(unique, photos))
+}
+
+/** Максимум запросов поиска за раз: страница команды — это пять игроков. */
+const SEARCH_LIMIT = 6
+
+/**
+ * Для игроков без карточки в Wikidata ищем фото прямо по Commons. Запросы
+ * идут параллельно и только по тем, кого ещё нет в наборе.
+ */
+async function withCommonsSearch(
+  nicknames: readonly string[],
+  photos: Record<string, FreePhoto>,
+): Promise<Record<string, FreePhoto>> {
+  const missing = nicknames
+    .filter((nick) => photos[nick.toLowerCase()] === undefined)
+    .slice(0, SEARCH_LIMIT)
+
+  if (missing.length === 0) return photos
+
+  const found = await Promise.all(missing.map((nick) => searchCommonsPhoto(nick)))
+
+  for (const [index, photo] of found.entries()) {
+    const nick = missing[index]
+
+    if (nick === undefined || photo === null) continue
+
+    photos[nick.toLowerCase()] = photo
+  }
+
+  return photos
 }
 
 /**

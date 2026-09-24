@@ -4,6 +4,7 @@ import { Suspense } from "react"
 
 import { CS2, ROUTES, SITE } from "@/shared/config"
 import { Container } from "@/shared/ui/container"
+import { ThemeToggle } from "@/shared/ui/theme-toggle"
 
 import { DesktopNav, DesktopNavView } from "./DesktopNav"
 import type { NavBadges } from "./DesktopNav"
@@ -54,6 +55,7 @@ export function SiteHeader() {
           <Suspense fallback={null}>
             <HeaderSearch />
           </Suspense>
+          <ThemeToggle className="hidden sm:inline-flex" />
           <Suspense fallback={<MobileMenuView pathname={null} badges={badges} brand={<Brand />} />}>
             <MobileMenu badges={badges} brand={<Brand />} />
           </Suspense>

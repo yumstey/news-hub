@@ -6,6 +6,8 @@ import { cn } from "@/shared/lib/style"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { SectionHeading } from "@/shared/ui/section-heading"
 
+import { loadNewsArt, newsCover } from "../lib/newsArt"
+
 export type NewsFeedProps = {
   page?: number
   perPage?: number
@@ -23,7 +25,7 @@ export async function NewsFeed({
   showMore = false,
   className,
 }: NewsFeedProps) {
-  const result = await getNewsFeed({ page, perPage })
+  const [result, art] = await Promise.all([getNewsFeed({ page, perPage }), loadNewsArt()])
 
   if (!result.ok) {
     return (
@@ -61,14 +63,14 @@ export async function NewsFeed({
       {variant === "grid" ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {result.data.items.map((item, index) => (
-            <NewsCard key={item.id} item={item} eager={index === 0} />
+            <NewsCard key={item.id} item={item} fallback={newsCover(item, art)} eager={index === 0} />
           ))}
         </div>
       ) : (
         <ul className="flex flex-col gap-2">
           {result.data.items.map((item) => (
             <li key={item.id}>
-              <NewsCard item={item} variant="row" />
+              <NewsCard item={item} variant="row" fallback={newsCover(item, art)} />
             </li>
           ))}
         </ul>

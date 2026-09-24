@@ -47,3 +47,5 @@ export type {
 } from "./api/liquipediaPlayer"
 export { getFreePhotos, preferPhoto } from "./api/freePhotos"
 export type { FreePhoto } from "./api/freePhotos"
+export { getPlayerCareerStats, getPlayerLeaderboard } from "./api/bo3Stats"
+export type { PlayerCareerStats, LeaderboardRow } from "./api/bo3Stats"

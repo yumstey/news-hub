@@ -1,10 +1,11 @@
 import Link from "next/link"
 
 import { TeamLogo } from "@/entities/team/@x/match"
-import { formatDayMonth, formatTime, toIsoDate } from "@/shared/lib/date"
 import { cn } from "@/shared/lib/style"
+import { LocalTime } from "@/shared/ui/local-time"
 
 import { matchHref } from "../lib/matchHref"
+import { stageLabel } from "../lib/stageLabel"
 import { MATCH_FORMAT_LABEL } from "../model/match"
 import type { Match, MatchSide } from "../model/match"
 
@@ -61,6 +62,7 @@ export function MatchRow({ match, showDate = false, className }: MatchRowProps) 
   const live = match.status === "live"
   const showScore = match.status !== "scheduled"
   const [first, second] = match.teams
+  const stage = stageLabel(match.stage)
 
   return (
     <Link
@@ -83,17 +85,17 @@ export function MatchRow({ match, showDate = false, className }: MatchRowProps) 
             LIVE
           </span>
         ) : (
-          <time
-            dateTime={toIsoDate(match.startsAt)}
+          <LocalTime
+            value={match.startsAt.toISOString()}
             className="text-caption font-medium tabular-nums text-foreground"
-          >
-            {formatTime(match.startsAt)}
-          </time>
+          />
         )}
         {showDate ? (
-          <span className="text-overline tracking-normal tabular-nums text-subtle-foreground">
-            {formatDayMonth(match.startsAt)}
-          </span>
+          <LocalTime
+            value={match.startsAt.toISOString()}
+            format="day-month"
+            className="text-overline tracking-normal tabular-nums text-subtle-foreground"
+          />
         ) : null}
       </span>
 
@@ -114,7 +116,8 @@ export function MatchRow({ match, showDate = false, className }: MatchRowProps) 
 
       <span className="hidden w-40 shrink-0 flex-col items-end gap-0.5 sm:flex">
         <span className="text-overline uppercase text-subtle-foreground">
-          {MATCH_FORMAT_LABEL[match.format]} · {match.stage}
+          {MATCH_FORMAT_LABEL[match.format]}
+          {stage.length > 0 ? ` · ${stage}` : null}
         </span>
         <span className="w-full truncate text-right text-caption text-muted-foreground">
           {match.tournament.name}

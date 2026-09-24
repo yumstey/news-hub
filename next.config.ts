@@ -58,6 +58,16 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "images.cybersport.ru",
+        pathname: "/images/**",
+      },
+      {
+        protocol: "https",
+        hostname: "media.esports.gg",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
         hostname: "www.dexerto.com",
         pathname: "/**",
       },

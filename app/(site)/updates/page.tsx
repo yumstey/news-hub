@@ -12,7 +12,7 @@ import { Container, Section, Stack } from "@/shared/ui/container"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { Skeleton } from "@/shared/ui/skeleton"
-import { OnlineNow, SectionHero } from "@/widgets/game-hub"
+import { HeroLinks, OnlineNow, SectionHero } from "@/widgets/game-hub"
 
 import { buildMetadata } from "../_lib/metadata"
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
@@ -30,31 +30,40 @@ export function generateMetadata() {
   })
 }
 
+const HERO_LINKS = [
+  { label: "Об игре", href: ROUTES.game },
+  { label: "Скины", href: ROUTES.skins },
+  { label: "Новости", href: ROUTES.news },
+] as const
+
 export default function Page() {
   return (
-    <Container>
-      <Section spacing="md">
-        <Stack gap="lg">
-          <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
-          <Breadcrumbs items={CRUMBS} />
+    <>
+      <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
 
-          <SectionHero
-            scene="updates"
-            title={TITLE}
-            description={DESCRIPTION}
-            aside={
-              <Suspense fallback={null}>
-                <OnlineNow />
-              </Suspense>
-            }
-          />
-
-          <Suspense fallback={<Skeleton variant="block" className="h-96 w-full" />}>
-            <Timeline />
+      <SectionHero
+        scene="updates"
+        crumbs={<Breadcrumbs items={CRUMBS} />}
+        title={TITLE}
+        description={DESCRIPTION}
+        stats={
+          <Suspense fallback={null}>
+            <OnlineNow />
           </Suspense>
-        </Stack>
-      </Section>
-    </Container>
+        }
+        actions={<HeroLinks links={HERO_LINKS} />}
+      />
+
+      <Container>
+        <Section spacing="md">
+          <Stack gap="lg">
+            <Suspense fallback={<Skeleton variant="block" className="h-96 w-full" />}>
+              <Timeline />
+            </Suspense>
+          </Stack>
+        </Section>
+      </Container>
+    </>
   )
 }
 

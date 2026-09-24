@@ -6,9 +6,11 @@ import { Container, Section, Stack } from "@/shared/ui/container"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { CaseShowcase, LatestUpdates, LiveNow, OnlineNow, SkinShowcase } from "@/widgets/game-hub"
-import { MatchCenter, MatchCenterSkeleton } from "@/widgets/match-center"
+import { MatchCenter, MatchCenterSkeleton, SpotlightMatch, SpotlightMatchSkeleton } from "@/widgets/match-center"
+import { OngoingEvents, SidebarCardSkeleton } from "@/widgets/match-sidebar"
 import { NewsFeed, NewsFeedSkeleton } from "@/widgets/news-feed"
 import { TeamRankings, TeamRankingsSkeleton } from "@/widgets/team-rankings"
+import { VideoRail, VideoRailSkeleton } from "@/widgets/video-rail"
 
 import { PlatformHero } from "./_ui/PlatformHero"
 
@@ -41,6 +43,11 @@ export default function Page() {
               <LiveNow />
             </Suspense>
           </>
+        }
+        spotlight={
+          <Suspense fallback={<SpotlightMatchSkeleton />}>
+            <SpotlightMatch />
+          </Suspense>
         }
       />
 
@@ -89,6 +96,10 @@ export default function Page() {
                   <TeamRankings limit={10} title="Мировой рейтинг" showMore />
                 </Suspense>
 
+                <Suspense fallback={<SidebarCardSkeleton rows={6} />}>
+                  <OngoingEvents />
+                </Suspense>
+
                 <Suspense fallback={<Skeleton variant="block" className="h-48 w-full" />}>
                   <LatestUpdates limit={4} />
                 </Suspense>
@@ -96,6 +107,10 @@ export default function Page() {
                 <AdSlot slot="sidebar" />
               </Stack>
             </div>
+
+            <Suspense fallback={<VideoRailSkeleton />}>
+              <VideoRail limit={4} />
+            </Suspense>
 
             <Suspense fallback={<Skeleton variant="block" className="h-72 w-full" />}>
               <SkinShowcase title="Популярные скины" limit={10} />

@@ -149,10 +149,23 @@ export function toMatch(wire: PandaMatchWire): Match | null {
   }
 }
 
-export function toMatchList(wires: readonly PandaMatchWire[]): Match[] {
-  return wires.flatMap((wire) => {
+/**
+ * PandaScore сортирует по begin_at, а у части матчей это поле пустое — такие
+ * записи он отдаёт первыми, и в «последних результатах» оказывались матчи
+ * трёхмесячной давности. Поэтому порядок задаём сами, по времени начала.
+ */
+export function toMatchList(
+  wires: readonly PandaMatchWire[],
+  order: "asc" | "desc" = "asc",
+): Match[] {
+  const matches = wires.flatMap((wire) => {
     const match = toMatch(wire)
 
     return match === null ? [] : [match]
   })
+
+  return matches.sort(
+    (left, right) =>
+      (left.startsAt.getTime() - right.startsAt.getTime()) * (order === "asc" ? 1 : -1),
+  )
 }

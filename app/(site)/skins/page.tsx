@@ -19,13 +19,15 @@ import { ROUTES, SITE_URL } from "@/shared/config"
 import { buildCollectionPageJsonLd } from "@/shared/lib/seo"
 import { pageCount, paginate } from "@/shared/model"
 import { AdSlot } from "@/shared/ui/ad-slot"
+import { Crosshair, Tag } from "lucide-react"
+import { plural } from "@/shared/lib/text"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { Pagination } from "@/shared/ui/pagination"
 import { Skeleton } from "@/shared/ui/skeleton"
-import { SectionHero } from "@/widgets/game-hub"
+import { HeroLinks, HeroStat, SectionHero } from "@/widgets/game-hub"
 import { FaqBlock, MarketFilters } from "@/widgets/skin-market"
 
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
@@ -39,30 +41,71 @@ const CRUMBS = trail({ label: "Скины" })
 const PER_PAGE = 40
 const WEAPON_LINKS = 18
 
+const HERO_LINKS = [
+  { label: "Кейсы", href: ROUTES.cases },
+  { label: "Обновления", href: ROUTES.updates },
+  { label: "Об игре", href: ROUTES.game },
+] as const
+
+async function HeroStats() {
+  const result = await getSkinCatalog()
+
+  if (!result.ok) return null
+
+  const priced = result.data.filter((skin) => skin.fromPrice !== null).length
+
+  return (
+    <>
+      <HeroStat
+        icon={<Crosshair aria-hidden="true" className="size-4 text-subtle-foreground" />}
+        value={result.data.length}
+        label={plural(result.data.length, ["скин", "скина", "скинов"])}
+      />
+      <HeroStat
+        icon={<Tag aria-hidden="true" className="size-4 text-subtle-foreground" />}
+        value={priced}
+        label="с ценой Skinport"
+      />
+    </>
+  )
+}
+
 export default function Page(props: PageProps<"/skins">) {
   return (
-    <Container>
-      <Section spacing="md">
-        <Stack gap="lg">
-          <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
-          <Breadcrumbs items={CRUMBS} />
+    <>
+      <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
 
-          <SectionHero scene="skins" title={SKINS_TITLE} description={SKINS_DESCRIPTION} />
-
-          <Suspense fallback={<Skeleton variant="block" className="h-20 w-full" />}>
-            <WeaponStrip />
+      <SectionHero
+        scene="skins"
+        crumbs={<Breadcrumbs items={CRUMBS} />}
+        title={SKINS_TITLE}
+        description={SKINS_DESCRIPTION}
+        stats={
+          <Suspense fallback={null}>
+            <HeroStats />
           </Suspense>
+        }
+        actions={<HeroLinks links={HERO_LINKS} />}
+      />
 
-          <Suspense fallback={<SkinGridSkeleton count={20} />}>
-            <Catalog searchParams={props.searchParams} />
-          </Suspense>
+      <Container>
+        <Section spacing="md">
+          <Stack gap="lg">
+            <Suspense fallback={<Skeleton variant="block" className="h-20 w-full" />}>
+              <WeaponStrip />
+            </Suspense>
 
-          <AdSlot slot="inline" />
+            <Suspense fallback={<SkinGridSkeleton count={20} />}>
+              <Catalog searchParams={props.searchParams} />
+            </Suspense>
 
-          <FaqBlock title="Скины CS2: частые вопросы" entries={SKINS_FAQ} />
-        </Stack>
-      </Section>
-    </Container>
+            <AdSlot slot="inline" />
+
+            <FaqBlock title="Скины CS2: частые вопросы" entries={SKINS_FAQ} />
+          </Stack>
+        </Section>
+      </Container>
+    </>
   )
 }
 

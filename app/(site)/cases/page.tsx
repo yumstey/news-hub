@@ -6,12 +6,14 @@ import { ROUTES, SITE_URL } from "@/shared/config"
 import { buildCollectionPageJsonLd } from "@/shared/lib/seo"
 import { cn } from "@/shared/lib/style"
 import { AdSlot } from "@/shared/ui/ad-slot"
+import { Box } from "lucide-react"
+import { plural } from "@/shared/lib/text"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { SectionHeading } from "@/shared/ui/section-heading"
-import { SectionHero } from "@/widgets/game-hub"
+import { HeroLinks, HeroStat, SectionHero } from "@/widgets/game-hub"
 import { FaqBlock } from "@/widgets/skin-market"
 import type { FaqEntry } from "@/widgets/skin-market"
 
@@ -48,54 +50,86 @@ const FAQ: readonly FaqEntry[] = [
   },
 ]
 
+const HERO_LINKS = [
+  { label: "Скины", href: ROUTES.skins },
+  { label: "Обновления", href: ROUTES.updates },
+  { label: "Об игре", href: ROUTES.game },
+] as const
+
+async function HeroStats() {
+  const result = await getCrateCatalog()
+
+  if (!result.ok) return null
+
+  return (
+    <HeroStat
+      icon={<Box aria-hidden="true" className="size-4 text-subtle-foreground" />}
+      value={result.data.length}
+      label={plural(result.data.length, ["кейс", "кейса", "кейсов"])}
+    />
+  )
+}
+
 export default function Page() {
   return (
-    <Container>
-      <Section spacing="md">
-        <Stack gap="lg">
-          <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
-          <Breadcrumbs items={CRUMBS} />
+    <>
+      <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
 
-          <SectionHero scene="cases" title={CASES_TITLE} description={CASES_DESCRIPTION} />
-
-          <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-5">
-            <SectionHeading title="Шансы выпадения из любого кейса" level={2} />
-            <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" className="h-3 w-full overflow-hidden rounded-full">
-              {ODDS.reduce<{ x: number; nodes: React.ReactNode[] }>(
-                (acc, entry) => {
-                  const width = Math.max(CRATE_ODDS[entry.key] * 100, 0.8)
-
-                  acc.nodes.push(
-                    <rect key={entry.key} x={acc.x} y="0" width={width} height="6" className={entry.tone.fill} />,
-                  )
-
-                  return { x: acc.x + width, nodes: acc.nodes }
-                },
-                { x: 0, nodes: [] },
-              ).nodes}
-            </svg>
-            <ul className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-              {ODDS.map((entry) => (
-                <li key={entry.key} className="flex flex-col gap-0.5 rounded-control bg-muted px-3 py-2">
-                  <span className={cn("text-subheading font-bold tabular-nums", entry.tone.text)}>
-                    {(CRATE_ODDS[entry.key] * 100).toLocaleString("ru-RU", { maximumFractionDigits: 2 })}%
-                  </span>
-                  <span className="text-overline uppercase text-subtle-foreground">{entry.label}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
-
-          <Suspense fallback={<div className="h-96 rounded-surface bg-skeleton" />}>
-            <Catalog />
+      <SectionHero
+        scene="cases"
+        crumbs={<Breadcrumbs items={CRUMBS} />}
+        title={CASES_TITLE}
+        description={CASES_DESCRIPTION}
+        stats={
+          <Suspense fallback={null}>
+            <HeroStats />
           </Suspense>
+        }
+        actions={<HeroLinks links={HERO_LINKS} />}
+      />
 
-          <AdSlot slot="inline" />
+      <Container>
+        <Section spacing="md">
+          <Stack gap="lg">
+            <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-5">
+              <SectionHeading title="Шансы выпадения из любого кейса" level={2} />
+              <svg viewBox="0 0 100 6" preserveAspectRatio="none" aria-hidden="true" className="h-3 w-full overflow-hidden rounded-full">
+                {ODDS.reduce<{ x: number; nodes: React.ReactNode[] }>(
+                  (acc, entry) => {
+                    const width = Math.max(CRATE_ODDS[entry.key] * 100, 0.8)
 
-          <FaqBlock title="Кейсы CS2: частые вопросы" entries={FAQ} />
-        </Stack>
-      </Section>
-    </Container>
+                    acc.nodes.push(
+                      <rect key={entry.key} x={acc.x} y="0" width={width} height="6" className={entry.tone.fill} />,
+                    )
+
+                    return { x: acc.x + width, nodes: acc.nodes }
+                  },
+                  { x: 0, nodes: [] },
+                ).nodes}
+              </svg>
+              <ul className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                {ODDS.map((entry) => (
+                  <li key={entry.key} className="flex flex-col gap-0.5 rounded-control bg-muted px-3 py-2">
+                    <span className={cn("text-subheading font-bold tabular-nums", entry.tone.text)}>
+                      {(CRATE_ODDS[entry.key] * 100).toLocaleString("ru-RU", { maximumFractionDigits: 2 })}%
+                    </span>
+                    <span className="text-overline uppercase text-subtle-foreground">{entry.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <Suspense fallback={<div className="h-96 rounded-surface bg-skeleton" />}>
+              <Catalog />
+            </Suspense>
+
+            <AdSlot slot="inline" />
+
+            <FaqBlock title="Кейсы CS2: частые вопросы" entries={FAQ} />
+          </Stack>
+        </Section>
+      </Container>
+    </>
   )
 }
 

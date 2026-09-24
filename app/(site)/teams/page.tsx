@@ -3,12 +3,15 @@ import { Suspense } from "react"
 import { getTeams } from "@/entities/team"
 import { ROUTES } from "@/shared/config"
 import { pageCount, paginate } from "@/shared/model"
+import { Users } from "lucide-react"
+import { plural } from "@/shared/lib/text"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
 import { Container, Section, Stack } from "@/shared/ui/container"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { Pagination } from "@/shared/ui/pagination"
-import { SectionHero } from "@/widgets/game-hub"
+import { HeroLinks, HeroStat, SectionHero } from "@/widgets/game-hub"
+import { RankingSnapshot, SidebarCardSkeleton } from "@/widgets/match-sidebar"
 
 import { breadcrumbsJsonLd, trail } from "../_lib/breadcrumbs"
 import { resolvePage } from "../_lib/page-param"
@@ -20,22 +23,59 @@ export { generateMetadata } from "./_lib/metadata"
 const CRUMBS = trail({ label: "Команды" })
 const PER_PAGE = 24
 
+const HERO_LINKS = [
+  { label: "Игроки", href: ROUTES.players },
+  { label: "Рейтинг Valve", href: ROUTES.rankings },
+  { label: "Матчи", href: ROUTES.matches },
+] as const
+
+async function HeroStats() {
+  const result = await getTeams()
+
+  if (!result.ok) return null
+
+  return (
+    <HeroStat
+      icon={<Users aria-hidden="true" className="size-4 text-subtle-foreground" />}
+      value={result.data.length}
+      label={plural(result.data.length, ["команда", "команды", "команд"])}
+    />
+  )
+}
+
 export default function Page(props: PageProps<"/teams">) {
   return (
-    <Container>
-      <Section spacing="md">
-        <Stack gap="lg">
-          <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
-          <Breadcrumbs items={CRUMBS} />
+    <>
+      <JsonLd data={breadcrumbsJsonLd(CRUMBS)} />
 
-          <SectionHero scene="teams" title={TEAMS_TITLE} description={TEAMS_DESCRIPTION} />
-
-          <Suspense fallback={<TeamsGridSkeleton />}>
-            <TeamsGrid searchParams={props.searchParams} />
+      <SectionHero
+        scene="teams"
+        crumbs={<Breadcrumbs items={CRUMBS} />}
+        title={TEAMS_TITLE}
+        description={TEAMS_DESCRIPTION}
+        stats={
+          <Suspense fallback={null}>
+            <HeroStats />
           </Suspense>
-        </Stack>
-      </Section>
-    </Container>
+        }
+        actions={<HeroLinks links={HERO_LINKS} />}
+        aside={
+          <Suspense fallback={<SidebarCardSkeleton rows={5} />}>
+            <RankingSnapshot limit={5} />
+          </Suspense>
+        }
+      />
+
+      <Container>
+        <Section spacing="md">
+          <Stack gap="lg">
+            <Suspense fallback={<TeamsGridSkeleton />}>
+              <TeamsGrid searchParams={props.searchParams} />
+            </Suspense>
+          </Stack>
+        </Section>
+      </Container>
+    </>
   )
 }
 

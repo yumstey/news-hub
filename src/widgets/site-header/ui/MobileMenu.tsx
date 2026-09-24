@@ -9,6 +9,7 @@ import type { ReactNode } from "react"
 import { HEADER_GROUP_LABEL, MAIN_NAV, ROUTES, SITE } from "@/shared/config"
 import type { HeaderGroupKey } from "@/shared/config"
 import { cn } from "@/shared/lib/style"
+import { ThemeToggle } from "@/shared/ui/theme-toggle"
 
 import { isSectionActive } from "../lib/isSectionActive"
 import type { NavBadges } from "./DesktopNav"
@@ -137,6 +138,7 @@ export function MobileMenuView({ pathname, badges = {}, brand }: MobileMenuViewP
           </nav>
 
           <div className="shrink-0 border-t border-border px-4 py-3">
+            <ThemeToggle variant="labelled" className="mb-3" />
             <Link
               href={ROUTES.advertise}
               onClick={close}

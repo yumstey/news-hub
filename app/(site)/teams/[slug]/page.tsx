@@ -21,10 +21,13 @@ import { SectionHeading } from "@/shared/ui/section-heading"
 import { Text } from "@/shared/ui/typography"
 import { TeamMapPool } from "@/widgets/map-stats"
 import { MatchCenter, MatchCenterSkeleton } from "@/widgets/match-center"
+import { loadNewsArt, newsCover } from "@/widgets/news-feed"
 
 import { breadcrumbsJsonLd, trail } from "../../_lib/breadcrumbs"
 import { resolveSlug } from "../../_lib/params"
 import { TeamProfile } from "./_ui/TeamProfile"
+import { buildRoster, rosterNicknames, rosterPlayers } from "./_lib/roster"
+import { TeamEvents } from "./_ui/TeamEvents"
 import { TeamRosterStrip, TeamRosterStripSkeleton } from "./_ui/TeamRosterStrip"
 import { TeamTrophies } from "./_ui/TeamTrophies"
 
@@ -87,6 +90,10 @@ async function TeamView({ params }: Pick<PageProps<"/teams/[slug]">, "params">) 
         <TeamNews name={team.name} shortName={team.shortName} />
       </Suspense>
 
+      <Suspense fallback={null}>
+        <TeamEvents teamId={team.id} teamName={team.name} />
+      </Suspense>
+
       <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-2">
         <Suspense fallback={<MatchCenterSkeleton rows={3} />}>
           <MatchCenter
@@ -144,12 +151,13 @@ async function Overview({ team }: { team: Team }) {
   const profile = profileResult.ok ? profileResult.data : EMPTY_PROFILE
   const players = playersResult.ok ? playersResult.data : []
   const history = historyResult.ok ? historyResult.data : []
-  const photos = await getFreePhotos(players.map((player) => player.nickname))
+  const photos = await getFreePhotos(rosterNicknames(profile.roster, players))
+  const roster = buildRoster(profile.roster, players, photos.ok ? photos.data : {})
 
   return (
     <>
-      <TeamRosterStrip players={players} photos={photos.ok ? photos.data : {}} />
-      <TeamProfile team={team} profile={profile} players={players} />
+      <TeamRosterStrip roster={roster} />
+      <TeamProfile team={team} profile={profile} players={rosterPlayers(players, roster)} />
       {history.length < 2 ? null : (
         <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-4 sm:p-5">
           <SectionHeading title="Место в рейтинге Valve" />
@@ -175,7 +183,7 @@ async function Overview({ team }: { team: Team }) {
 }
 
 async function TeamNews({ name, shortName }: { name: string; shortName: string }) {
-  const result = await getTeamNews(name, shortName)
+  const [result, art] = await Promise.all([getTeamNews(name, shortName), loadNewsArt()])
 
   if (!result.ok || result.data.length === 0) return null
 
@@ -185,7 +193,7 @@ async function TeamNews({ name, shortName }: { name: string; shortName: string }
       <ul className="flex flex-col gap-2">
         {result.data.map((item) => (
           <li key={item.id}>
-            <NewsCard item={item} variant="row" />
+            <NewsCard item={item} variant="row" fallback={newsCover(item, art)} />
           </li>
         ))}
       </ul>

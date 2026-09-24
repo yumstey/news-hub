@@ -63,13 +63,22 @@ export const metadata: Metadata = {
   },
 }
 
+/**
+ * Выбранная тема применяется до первой отрисовки: иначе страница успевает
+ * мигнуть системной темой. Без сохранённого выбора тема следует системе.
+ */
+const THEME_SCRIPT = `try{var t=localStorage.getItem("theme");if(t==="light"||t==="dark"){document.documentElement.dataset.theme=t}}catch(e){}`
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang={SITE.locale}
-      data-theme="dark"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body className="flex min-h-dvh flex-col bg-background text-foreground">
         {children}
       </body>

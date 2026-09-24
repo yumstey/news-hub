@@ -5,7 +5,7 @@ import type { ApiResult } from "@/shared/api"
 import { CS2_MODULE, scheduleTag } from "@/shared/config"
 
 import type { Match } from "../model/match"
-import { CS2_PATH, pageSize } from "./pandaEndpoints"
+import { CS2_PATH, pageSizeWithSlack } from "./pandaEndpoints"
 import { toMatchList } from "./pandaMatchMapper"
 import { pandaMatchSchema } from "./pandaMatchSchema"
 
@@ -15,14 +15,14 @@ export async function getMatchResults(limit?: number): Promise<ApiResult<Match[]
   cacheTag(scheduleTag(CS2_MODULE))
 
   const result = await pandaList(`${CS2_PATH}/matches/past`, pandaMatchSchema, {
-    "page[size]": pageSize(limit),
+    "page[size]": pageSizeWithSlack(limit),
     "filter[status]": "finished",
-    sort: "-begin_at",
+    sort: "-scheduled_at",
   })
 
   if (!result.ok) return fail(result.error)
 
-  const matches = toMatchList(result.data)
+  const matches = toMatchList(result.data, "desc")
 
   return ok(limit === undefined ? matches : matches.slice(0, limit))
 }

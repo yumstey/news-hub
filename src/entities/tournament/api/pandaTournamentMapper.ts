@@ -110,6 +110,14 @@ export function toStanding(wire: PandaStandingWire, index: number): StandingRow 
   }
 }
 
+/** Победитель серии: берём из самой поздней стадии, где он проставлен. */
+function winnerOf(stages: readonly PandaStageWire[]): string | null {
+  const withWinner = stages.filter((stage) => stage.winner_id !== null)
+  const last = withWinner.at(-1)
+
+  return last?.winner_id === undefined || last.winner_id === null ? null : String(last.winner_id)
+}
+
 export function toTournament(
   stages: readonly PandaStageWire[],
   now: Date,
@@ -171,6 +179,7 @@ export function toTournament(
     startsAt,
     endsAt,
     teams: [...teams.values()],
+    winnerId: winnerOf(stages),
     stages: stages
       .map((stage): TournamentStage => {
         const from = boundary([stage.begin_at], "min")

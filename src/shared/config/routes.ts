@@ -10,6 +10,7 @@ export const ROUTES = {
   players: "/players",
   events: "/events",
   streams: "/streams",
+  videos: "/videos",
   skins: "/skins",
   cases: "/cases",
   updates: "/updates",
@@ -68,6 +69,7 @@ export const MAIN_NAV: readonly HeaderNavItem[] = [
   { section: "cases", label: "Кейсы", href: ROUTES.cases, group: "game", tier: 1 },
   { section: "updates", label: "Обновления", href: ROUTES.updates, group: "game", tier: 2 },
   { section: "news", label: "Новости", href: ROUTES.news, group: "media", tier: 2 },
+  { section: "videos", label: "Видео", href: ROUTES.videos, group: "media", tier: 2 },
   { section: "streams", label: "Эфиры", href: ROUTES.streams, group: "media", tier: 2 },
 ]
 
@@ -88,6 +90,7 @@ export const FOOTER_NAV: readonly NavGroup[] = [
       { section: "teams", label: "Команды", href: ROUTES.teams },
       { section: "players", label: "Игроки", href: ROUTES.players },
       { section: "news", label: "Новости", href: ROUTES.news },
+      { section: "videos", label: "Видео и хайлайты", href: ROUTES.videos },
     ],
   },
   {

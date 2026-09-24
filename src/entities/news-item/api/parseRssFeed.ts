@@ -1,5 +1,6 @@
 import { newsItemIdSchema } from "../model/newsItem"
-import type { NewsItem, NewsSource } from "../model/newsItem"
+import type { NewsItem, NewsLanguage, NewsSource } from "../model/newsItem"
+import type { FeedImages } from "./newsSources"
 
 const ENTITIES: Record<string, string> = {
   "&amp;": "&",
@@ -68,7 +69,8 @@ export function extractImage(block: string): string | null {
 
 export type ParseOptions = {
   source: NewsSource
-  allowImages: boolean
+  images: FeedImages
+  language: NewsLanguage
 }
 
 export function parseRssFeed(xml: string, options: ParseOptions): NewsItem[] {
@@ -89,7 +91,7 @@ export function parseRssFeed(xml: string, options: ParseOptions): NewsItem[] {
 
     if (!Number.isFinite(timestamp)) continue
 
-    const image = options.allowImages ? extractImage(block) : null
+    const image = options.images === "none" ? null : extractImage(block)
     const excerpt = tag(block, "description") ?? ""
 
     items.push({
@@ -98,8 +100,11 @@ export function parseRssFeed(xml: string, options: ParseOptions): NewsItem[] {
       excerpt: excerpt.length > 280 ? `${excerpt.slice(0, 277)}…` : excerpt,
       url,
       source: options.source,
+      language: options.language,
       image:
-        image === null ? null : { url: image, width: 800, height: 450, alt: title },
+        image === null
+          ? null
+          : { url: image, width: 800, height: 450, alt: title, optimize: options.images === "optimized" },
       publishedAt: new Date(timestamp),
     })
   }

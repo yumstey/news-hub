@@ -10,13 +10,29 @@ export type NewsSource = {
   url: string
 }
 
+export type NewsLanguage = "ru" | "en"
+
+export const NEWS_LANGUAGE_LABEL: Record<NewsLanguage, string> = {
+  ru: "На русском",
+  en: "English",
+}
+
+export type NewsImage = ImageAsset & {
+  /**
+   * false — картинка грузится браузером прямо с CDN источника: защита HLTV
+   * отдаёт 403 на серверные запросы оптимизатора, а браузеру — отдаёт.
+   */
+  optimize: boolean
+}
+
 export type NewsItem = {
   id: NewsItemId
   title: string
   excerpt: string
   url: string
   source: NewsSource
-  image: ImageAsset | null
+  language: NewsLanguage
+  image: NewsImage | null
   publishedAt: Date
 }
 

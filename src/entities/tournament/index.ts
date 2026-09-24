@@ -23,7 +23,8 @@ export { getTournamentBySlug } from "./api/getTournamentBySlug"
 export { TournamentTierBadge } from "./ui/TournamentTierBadge"
 export type { TournamentTierBadgeProps } from "./ui/TournamentTierBadge"
 export { searchTournaments } from "./api/searchTournaments"
-export { TournamentCard, TournamentCardSkeleton } from "./ui/TournamentCard"
+export { TournamentCard, TournamentRow, TournamentCardSkeleton } from "./ui/TournamentCard"
+export type { TournamentCardProps } from "./ui/TournamentCard"
 export { getTournamentBracket } from "./api/getTournamentBracket"
 export type { TournamentStage } from "./model/tournament"
 export type {
@@ -34,3 +35,5 @@ export type {
   BracketFeed,
   BracketFeedKind,
 } from "./api/getTournamentBracket"
+export { getEventProfile, EMPTY_EVENT_PROFILE, parseEventProfile } from "./api/liquipediaEvent"
+export type { EventProfile, EventPrize, EventParticipant } from "./api/liquipediaEvent"

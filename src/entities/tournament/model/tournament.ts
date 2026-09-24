@@ -75,6 +75,8 @@ export type Tournament = {
   startsAt: Date
   endsAt: Date
   teams: TeamRef[]
+  /** Чемпион завершённого турнира, если он известен. */
+  winnerId: string | null
   stages: TournamentStage[]
   standings: StandingRow[]
   description: string

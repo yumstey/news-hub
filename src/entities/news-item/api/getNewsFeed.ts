@@ -7,7 +7,7 @@ import { paginate } from "@/shared/model"
 import type { Paginated } from "@/shared/model"
 
 import { NEWS_PER_PAGE } from "../model/newsItem"
-import type { NewsItem } from "../model/newsItem"
+import type { NewsItem, NewsLanguage } from "../model/newsItem"
 import { FEEDS, isCs2Related } from "./newsSources"
 import type { FeedDefinition } from "./newsSources"
 import { parseRssFeed } from "./parseRssFeed"
@@ -16,6 +16,7 @@ export type NewsQuery = {
   page?: number
   perPage?: number
   query?: string
+  language?: NewsLanguage
 }
 
 async function loadFeed(feed: FeedDefinition): Promise<NewsItem[]> {
@@ -25,12 +26,15 @@ async function loadFeed(feed: FeedDefinition): Promise<NewsItem[]> {
 
   const items = parseRssFeed(result.data, {
     source: feed.source,
-    allowImages: feed.allowImages,
+    images: feed.images,
+    language: feed.language,
   })
+  const { scope } = feed
 
-  if (feed.cs2Only) return items
+  if (scope === "all") return items
+  if (scope === "keywords") return items.filter((item) => isCs2Related(item.title, item.excerpt))
 
-  return items.filter((item) => isCs2Related(item.title, item.excerpt))
+  return items.filter((item) => item.url.includes(scope.linkIncludes))
 }
 
 function dedupe(items: readonly NewsItem[]): NewsItem[] {
@@ -65,7 +69,8 @@ export async function getAllNews(): Promise<NewsItem[]> {
 export async function getNewsFeed(
   query: NewsQuery = {},
 ): Promise<ApiResult<Paginated<NewsItem>>> {
-  const items = await getAllNews()
+  const all = await getAllNews()
+  const items = query.language === undefined ? all : all.filter((item) => item.language === query.language)
   const needle = query.query?.trim().toLowerCase()
   const matching =
     needle === undefined || needle.length === 0

@@ -27,6 +27,7 @@ import { resolveSlug } from "../../_lib/params"
 import { PlayerCareer } from "./_ui/PlayerCareer"
 import { PlayerHero } from "./_ui/PlayerHero"
 import { PlayerHonours } from "./_ui/PlayerHonours"
+import { PlayerCareerStats } from "./_ui/PlayerCareerStats"
 import { PlayerProfileCard } from "./_ui/PlayerProfileCard"
 import { PlayerRecord } from "./_ui/PlayerRecord"
 
@@ -137,13 +138,17 @@ async function Overview({ player }: { player: Player }) {
         photo={photo}
       />
       <PlayerProfileCard profile={profile} />
+
+      <Suspense fallback={<Skeleton variant="block" className="h-48 w-full" />}>
+        <PlayerCareerStats slug={player.slug} nickname={player.nickname} />
+      </Suspense>
       <PlayerRecord record={record} />
       <PlayerHonours profile={profile} />
       <PlayerCareer career={career} teamIds={record.teamIds} />
 
       <Text size="caption" tone="subtle">
-        Персональные показатели за раунд (рейтинг, ADR, KAST) не входят в текущий тариф
-        PandaScore, поэтому статистика ниже собрана по результатам матчей и данным Liquipedia.
+        Матчевая статистика собрана по результатам PandaScore и данным Liquipedia, карьерные
+        показатели за раунд — по открытым данным bo3.gg.
       </Text>
     </>
   )
