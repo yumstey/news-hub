@@ -21,6 +21,7 @@ import { TournamentBracket, TournamentBracketSkeleton } from "@/widgets/tourname
 import { breadcrumbsJsonLd, trail } from "../../_lib/breadcrumbs"
 import { resolveSlug } from "../../_lib/params"
 import { EventHero, EventMeta } from "./_ui/EventHero"
+import { EventPlacements } from "./_ui/EventPlacements"
 import { EventProfileBlock } from "./_ui/EventProfileBlock"
 
 export { generateMetadata } from "./_lib/metadata"
@@ -103,6 +104,14 @@ async function EventView({ params }: Pick<PageProps<"/events/[slug]">, "params">
 
             <Suspense fallback={<Skeleton variant="block" className="h-64 w-full" />}>
               <EventProfileBlock tournamentId={tournament.id} name={tournament.name} />
+            </Suspense>
+
+            <Suspense fallback={null}>
+              <EventPlacements
+                tournamentId={tournament.id}
+                name={tournament.name}
+                startsAt={tournament.startsAt}
+              />
             </Suspense>
 
             <Suspense fallback={<Skeleton variant="block" className="h-56 w-full" />}>

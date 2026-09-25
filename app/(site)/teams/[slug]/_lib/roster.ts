@@ -1,3 +1,4 @@
+import type { Match } from "@/entities/match"
 import type { FreePhoto, Player } from "@/entities/player"
 import { preferPhoto } from "@/entities/player"
 import type { RosterMember } from "@/entities/team"
@@ -81,4 +82,17 @@ export function rosterPlayers(players: readonly Player[], roster: readonly Roste
   const active = new Set(roster.map((member) => key(member.nickname)))
 
   return players.filter((player) => active.has(key(player.nickname)))
+}
+
+/** Последние исходы команды для полосы формы: победа или поражение. */
+export function teamForm(matches: readonly Match[], teamId: string): ("win" | "loss")[] {
+  return matches.flatMap((match) => {
+    const side = match.teams.find((entry) => entry.team.id === teamId)
+    const rival = match.teams.find((entry) => entry.team.id !== teamId)
+
+    if (side === undefined || rival === undefined) return []
+    if (!side.isWinner && !rival.isWinner) return []
+
+    return [side.isWinner ? ("win" as const) : ("loss" as const)]
+  })
 }

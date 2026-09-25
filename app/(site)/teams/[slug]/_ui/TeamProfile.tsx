@@ -57,14 +57,38 @@ function Row({
   )
 }
 
+/** Исход последних матчей, свежие первыми. */
+export type TeamForm = ("win" | "loss")[]
+
 export type TeamProfileProps = {
   team: Team
   profile: Profile
   players: readonly Player[]
+  form?: TeamForm
 }
 
-export function TeamProfile({ team, profile, players }: TeamProfileProps) {
+function FormStrip({ form }: { form: TeamForm }) {
+  return (
+    <span className="flex items-center gap-1">
+      {form.map((outcome, index) => (
+        <span
+          key={index}
+          title={outcome === "win" ? "победа" : "поражение"}
+          className={cn(
+            "flex size-5 items-center justify-center rounded-xs text-overline font-bold",
+            outcome === "win" ? "bg-success-soft text-success" : "bg-danger-soft text-danger",
+          )}
+        >
+          {outcome === "win" ? "В" : "П"}
+        </span>
+      ))}
+    </span>
+  )
+}
+
+export function TeamProfile({ team, profile, players, form = [] }: TeamProfileProps) {
   const age = averageAge(players)
+  const played = team.stats.matchesWon + team.stats.matchesLost
   const [coach] = profile.coaches
 
   return (
@@ -126,9 +150,37 @@ export function TeamProfile({ team, profile, players }: TeamProfileProps) {
           <Row label="Очки рейтинга">
             {team.rankingPoints === null ? "—" : team.rankingPoints}
           </Row>
+          {form.length === 0 ? null : (
+            <Row label="Форма">
+              <FormStrip form={form} />
+            </Row>
+          )}
+          <Row label="Победы и поражения">
+            {played === 0 ? (
+              "—"
+            ) : (
+              <>
+                <span className="text-success">{team.stats.matchesWon}</span>
+                <span className="text-subtle-foreground">:</span>
+                <span className="text-danger">{team.stats.matchesLost}</span>
+                <span className="text-muted-foreground">· {team.stats.winRate}%</span>
+              </>
+            )}
+          </Row>
         </div>
         <div>
           <Row label="Средний возраст состава">{age === null ? "—" : age}</Row>
+          <Row label="Текущая серия">
+            {team.stats.currentStreak === 0 ? (
+              "—"
+            ) : (
+              <span className={team.stats.currentStreak > 0 ? "text-success" : "text-danger"}>
+                {team.stats.currentStreak > 0
+                  ? `${team.stats.currentStreak} побед подряд`
+                  : `${Math.abs(team.stats.currentStreak)} поражений подряд`}
+              </span>
+            )}
+          </Row>
           <Row label="Тренер">
             {coach === undefined ? (
               "—"

@@ -25,6 +25,9 @@ export type RosterMember = {
   role: string | null
   igl: boolean
   joinedAt: string | null
+  /** Только для бывших игроков: когда ушёл и куда. */
+  leftAt: string | null
+  newTeam: string | null
 }
 
 export type TeamProfile = {
@@ -32,6 +35,8 @@ export type TeamProfile = {
   roster: RosterMember[]
   /** Скамейка: команда их держит, но они не играют. */
   inactive: RosterMember[]
+  /** Ушедшие игроки: последние изменения состава. */
+  former: RosterMember[]
   foundedYear: number | null
   region: string | null
   igl: TeamPerson | null
@@ -45,6 +50,7 @@ export const EMPTY_PROFILE: TeamProfile = {
   page: null,
   roster: [],
   inactive: [],
+  former: [],
   foundedYear: null,
   region: null,
   igl: null,
@@ -200,20 +206,28 @@ function personEntries(block: string): RosterMember[] {
       role: value("role"),
       igl: /\|igl=y/i.test(body),
       joinedAt: joindate,
+      leftAt: /leavedate=(?:\{\{abbr\|)?(\d{4}-\d{2}-\d{2})/i.exec(body)?.[1] ?? null,
+      newTeam: value("newteam"),
     })
   }
 
   return members
 }
 
-/** Состав со страницы команды: активные и на скамейке. */
-function squads(content: string): { roster: RosterMember[]; inactive: RosterMember[] } {
+/** Состав со страницы команды: активные, скамейка и ушедшие. */
+function squads(content: string): {
+  roster: RosterMember[]
+  inactive: RosterMember[]
+  former: RosterMember[]
+} {
   const active = templateBody(content, /\{\{Squad\|status=active/i)
   const bench = templateBody(content, /\{\{Squad\|status=inactive/i)
+  const gone = templateBody(content, /\{\{Squad\|status=former/i)
 
   return {
     roster: active === null ? [] : personEntries(active),
     inactive: bench === null ? [] : personEntries(bench),
+    former: gone === null ? [] : personEntries(gone),
   }
 }
 
@@ -229,6 +243,7 @@ export function parseTeamProfile(content: string, page: string): TeamProfile {
     page,
     roster: squad.roster,
     inactive: squad.inactive,
+    former: squad.former,
     foundedYear: foundedYear(box),
     region: field(box, "region"),
     igl: people(field(box, "igl"))[0] ?? null,

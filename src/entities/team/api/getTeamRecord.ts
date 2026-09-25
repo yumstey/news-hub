@@ -20,7 +20,7 @@ export async function getTeamRecord(teamSlug: string, teamId: number): Promise<T
     {
       "page[size]": RECORD_SAMPLE_SIZE,
       "filter[status]": "finished",
-      sort: "-begin_at",
+      sort: "-scheduled_at",
     },
   )
 

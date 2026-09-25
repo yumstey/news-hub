@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { Suspense } from "react"
 
 import { EMPTY_MATCH_MAPS, getGameMaps, getMatchMaps } from "@/entities/game-map"
-import { buildMatchJsonLd, getMatchById } from "@/entities/match"
+import { buildMatchJsonLd, getBo3MatchDetail, getHeadToHead, getMatchById } from "@/entities/match"
 import type { Match } from "@/entities/match"
 import { getFreePhotos } from "@/entities/player"
 import { Breadcrumbs } from "@/shared/ui/breadcrumbs"
@@ -10,7 +10,14 @@ import { Container, Section, Stack } from "@/shared/ui/container"
 import { JsonLd } from "@/shared/ui/json-ld"
 import { Skeleton } from "@/shared/ui/skeleton"
 import { Heading, Text } from "@/shared/ui/typography"
-import { MatchLineups, MatchMaps, MatchScoreboard, MatchStatistics } from "@/widgets/match-scoreboard"
+import {
+  HeadToHead,
+  MatchLineups,
+  MatchMaps,
+  MatchScoreboard,
+  MatchStatistics,
+  MatchStatsBoard,
+} from "@/widgets/match-scoreboard"
 
 import { breadcrumbsJsonLd, trail } from "../../_lib/breadcrumbs"
 import { resolveId } from "../../_lib/params"
@@ -67,6 +74,14 @@ async function MatchView({ params }: Pick<PageProps<"/matches/[id]">, "params">)
         <Lineups match={match} />
       </Suspense>
 
+      <Suspense fallback={null}>
+        <Meetings match={match} />
+      </Suspense>
+
+      <Suspense fallback={null}>
+        <DetailedStats match={match} />
+      </Suspense>
+
       {match.statistics === null ? (
         <Text size="caption" tone="subtle">
           Подробная статистика игроков для этого матча не публикуется на текущем тарифе данных.
@@ -76,6 +91,26 @@ async function MatchView({ params }: Pick<PageProps<"/matches/[id]">, "params">)
       )}
     </>
   )
+}
+
+/** Покарточная статистика и вето: матчевый тариф PandaScore их не отдаёт. */
+async function DetailedStats({ match }: { match: Match }) {
+  const [first, second] = match.teams
+  const result = await getBo3MatchDetail(first.team.name, second.team.name, match.startsAt.toISOString())
+
+  if (!result.ok || result.data === null) return null
+
+  return <MatchStatsBoard detail={result.data} teams={match.teams} />
+}
+
+/** Личные встречи считаются по матчам первой команды: отдельного запроса в API нет. */
+async function Meetings({ match }: { match: Match }) {
+  const [first, second] = match.teams
+  const result = await getHeadToHead(first.team.slug, first.team.id, second.team.id)
+
+  if (!result.ok) return null
+
+  return <HeadToHead teams={match.teams} data={result.data} />
 }
 
 async function Maps({ match }: { match: Match }) {

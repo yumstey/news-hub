@@ -20,18 +20,23 @@ import { Skeleton } from "@/shared/ui/skeleton"
 import { SectionHeading } from "@/shared/ui/section-heading"
 import { Text } from "@/shared/ui/typography"
 import { TeamMapPool } from "@/widgets/map-stats"
+import { getTeamMatches } from "@/entities/match"
 import { MatchCenter, MatchCenterSkeleton } from "@/widgets/match-center"
 import { loadNewsArt, newsCover } from "@/widgets/news-feed"
 
 import { breadcrumbsJsonLd, trail } from "../../_lib/breadcrumbs"
 import { resolveSlug } from "../../_lib/params"
 import { TeamProfile } from "./_ui/TeamProfile"
-import { buildRoster, rosterNicknames, rosterPlayers } from "./_lib/roster"
+import { buildRoster, rosterNicknames, rosterPlayers, teamForm } from "./_lib/roster"
+import { RosterChanges } from "./_ui/RosterChanges"
 import { TeamEvents } from "./_ui/TeamEvents"
 import { TeamRosterStrip, TeamRosterStripSkeleton } from "./_ui/TeamRosterStrip"
 import { TeamTrophies } from "./_ui/TeamTrophies"
 
 export { generateMetadata } from "./_lib/metadata"
+
+/** Сколько последних матчей показываем полосой формы. */
+const FORM_LENGTH = 6
 
 export default function Page(props: PageProps<"/teams/[slug]">) {
   return (
@@ -142,10 +147,11 @@ async function MapPool({ team }: { team: Team }) {
 }
 
 async function Overview({ team }: { team: Team }) {
-  const [profileResult, playersResult, historyResult] = await Promise.all([
+  const [profileResult, playersResult, historyResult, formResult] = await Promise.all([
     getTeamProfile(team.name),
     getTeamPlayers(team.slug),
     getTeamRankHistory(team.name),
+    getTeamMatches(team.slug, "results", FORM_LENGTH),
   ])
 
   const profile = profileResult.ok ? profileResult.data : EMPTY_PROFILE
@@ -157,7 +163,14 @@ async function Overview({ team }: { team: Team }) {
   return (
     <>
       <TeamRosterStrip roster={roster} />
-      <TeamProfile team={team} profile={profile} players={rosterPlayers(players, roster)} />
+      <TeamProfile
+        team={team}
+        profile={profile}
+        players={rosterPlayers(players, roster)}
+        form={teamForm(formResult.ok ? formResult.data : [], team.id)}
+      />
+      <RosterChanges inactive={profile.inactive} former={profile.former} />
+
       {history.length < 2 ? null : (
         <section className="flex flex-col gap-3 rounded-surface border border-border bg-surface p-4 sm:p-5">
           <SectionHeading title="Место в рейтинге Valve" />

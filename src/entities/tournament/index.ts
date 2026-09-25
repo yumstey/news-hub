@@ -37,3 +37,5 @@ export type {
 } from "./api/getTournamentBracket"
 export { getEventProfile, EMPTY_EVENT_PROFILE, parseEventProfile } from "./api/liquipediaEvent"
 export type { EventProfile, EventPrize, EventParticipant } from "./api/liquipediaEvent"
+export { getEventPlacements } from "./api/bo3Tournament"
+export type { EventPlacement } from "./api/bo3Tournament"
